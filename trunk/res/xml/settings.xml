@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference android:title="@string/select_a_stream"
+        android:key="stream_url"/>
+
+    <ListPreference android:title="@string/oneliner_refresh_time"
+        android:key="oneliner_refresh_period"
+        android:defaultValue="60"
+        android:entries="@array/oneliner_refresh_period_names"
+        android:entryValues="@array/oneliner_refresh_period_values"/>
+
+</PreferenceScreen>
