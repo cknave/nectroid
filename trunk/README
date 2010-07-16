@@ -9,6 +9,7 @@ NOTE: ic_menu_refresh.png is Copyright (C) The Android Open Source
 
 
 Build instructions:
+$ android update project -n Nectroid -p .
 $ ant debug
 
 Have fun!
