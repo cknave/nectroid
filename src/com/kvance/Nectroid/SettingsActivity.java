@@ -54,7 +54,6 @@ public class SettingsActivity extends PreferenceActivity
     {
         switch(requestCode) {
             case PICK_STREAM_REQUEST:
-                Log.d(TAG, String.format("Stream: rc=%d", resultCode));
                 if(resultCode == android.app.Activity.RESULT_OK) {
                     int id = data.getIntExtra(StreamsActivity.EXTRA_ID, -1);
                     onStreamPicked(data.getData(), id);

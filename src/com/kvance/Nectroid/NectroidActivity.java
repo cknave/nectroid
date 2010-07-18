@@ -83,7 +83,6 @@ public class NectroidActivity extends Activity
 
         mHandler = new Handler();
         createWidgets();
-        Log.d(TAG, "onCreate");
 
         // Fix banding on gradients
         getWindow().setFormat(android.graphics.PixelFormat.RGBA_8888);
@@ -140,7 +139,6 @@ public class NectroidActivity extends Activity
         mOneLinerManager.removeTaskListener(this);
 
         super.onStop();
-        Log.d(TAG, "onStop");
     }
 
 
@@ -149,7 +147,6 @@ public class NectroidActivity extends Activity
     protected void onPause()
     {
         super.onPause();
-        Log.d(TAG, "onPause");
         mPaused = true;
 
         // Disable auto-refresh.
@@ -163,7 +160,6 @@ public class NectroidActivity extends Activity
     protected void onResume()
     {
         super.onResume();
-        Log.d(TAG, "onResume");
         mPaused = false;
 
         // (Re-)enable auto-refresh.
@@ -222,7 +218,6 @@ public class NectroidActivity extends Activity
     {
         switch(requestCode) {
             case PICK_STREAM_REQUEST:
-                Log.d(TAG, String.format("Stream: rc=%d", resultCode));
                 if(resultCode == Activity.RESULT_OK) {
                     int id = data.getIntExtra(StreamsActivity.EXTRA_ID, -1);
                     onStreamPicked(data.getData(), id);
@@ -255,7 +250,6 @@ public class NectroidActivity extends Activity
             mHandler.post(onPlaylistUpdateTaskFinished);
 
         } else if(managerClass == OneLinerManager.class) {
-            Log.d(TAG, "Got new oneliners");
             OneLiner.List oneLiners = (OneLiner.List)result;
             mHandler.post(new OnOneLinerUpdateTaskFinished(oneLiners));
 
@@ -412,7 +406,6 @@ public class NectroidActivity extends Activity
         if(streamUrl != null) {
             // Save the choice so we don't have to ask next time.
             Prefs.setStreamUrlAndId(streamUrl, id, this);
-            Log.d(TAG, String.format("PICKED STREAM id=%d \"%s\"", id, streamUrl));
             playStream(streamUrl);
         }
     }
@@ -424,7 +417,6 @@ public class NectroidActivity extends Activity
 
     public void onStateChanged(PlayerService.State state)
     {
-        Log.d(TAG, String.format("Player state changed to %s", state));
         switch(state) {
             case STOPPED:
                 mPlayButton.setImageResource(R.drawable.play);
@@ -446,7 +438,6 @@ public class NectroidActivity extends Activity
     /** Update the playlist part of the UI with this song. */
     private void updatePlaylistUI(Playlist.EntryAndTimeLeft ent)
     {
-        Log.d(TAG, "Gonna update UI");
         mTimeLeft = ent.getTimeLeft();
         updateTimeLeft();
         updateCurrentlyPlaying(ent.getEntry());
@@ -509,7 +500,6 @@ public class NectroidActivity extends Activity
     /** Start the player service. */
     private void playStream(URL url)
     {
-        Log.d(TAG, String.format("PLAY THE STREAM: %s", url));
         Intent intent = new Intent(this, PlayerService.class);
         intent.setAction(PlayerService.ACTION_PLAY);
         intent.setData(Uri.parse(url.toString()));

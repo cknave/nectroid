@@ -73,7 +73,6 @@ abstract class AutoRefreshDocManager<Result> extends CachedDocManager<Result>
     {
         mAutoRefreshRequesters.add(requester.hashCode());
         if(mAutoRefreshRequesters.size() == 1) {
-            Log.d(TAG, "Starting autoupdates.");
             startAutoRefresh();
         }
     }
@@ -82,7 +81,6 @@ abstract class AutoRefreshDocManager<Result> extends CachedDocManager<Result>
     {
         mAutoRefreshRequesters.remove(requester.hashCode());
         if(mAutoRefreshRequesters.size() == 0) {
-            Log.d(TAG, "Stopping autoupdates.");
             stopAutoRefresh();
         }
     }
@@ -119,12 +117,10 @@ abstract class AutoRefreshDocManager<Result> extends CachedDocManager<Result>
     {
         if(!hasDocument()) {
             // No playlist to update!  Fetch one; cached is fine.
-            Log.d(TAG, "Auto-update on null document.  Fetching one.");
             update(mContext, true);
 
         } else {
             // Playlist is still current.  Schedule the update for later.
-            Log.d(TAG, "Scheduling auto-refresh.");
             scheduleNextRefresh(mContext);
         }
     }

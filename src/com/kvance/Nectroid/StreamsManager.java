@@ -43,7 +43,6 @@ public class StreamsManager extends CachedDocManager<Stream.List>
     {
         try {
             mStreams = Stream.listFromXml(xmlData);
-            Log.d(TAG, "Parsed OK");
             return mStreams;
         } catch(SAXException e) {
             Log.w(TAG, "Failed to parse streams.", e);

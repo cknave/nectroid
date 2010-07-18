@@ -96,10 +96,8 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
     @Override
     public Playlist parseDocument(String xmlData, Context context)
     {
-        Log.d(TAG, "Parsing playlist.");
         try {
             mPlaylist = new Playlist(xmlData, mTimeBase);
-            Log.d(TAG, "Parsed OK");
             return mPlaylist;
         } catch(SAXException e) {
             return null;
@@ -127,7 +125,6 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
     {
         mSongListeners.add(listener);
         if(mSongListeners.size() == 1) {
-            Log.d(TAG, "Starting song updates.");
             startSongUpdates();
         }
     }
@@ -136,7 +133,6 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
     {
         mSongListeners.remove(listener);
         if(mSongListeners.size() == 0) {
-            Log.d(TAG, "Stopping song updates.");
             stopSongUpdates();
         }
     }
@@ -238,16 +234,13 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
         long totalLength = mPlaylist.lengthInSeconds() * 1000L;
         long delay = totalLength - timeElapsed - ALMOST_DONE_TIME;
         delay = Math.max(delay, 0);    // An old queue may have finished in the past
-        Log.d(TAG, String.format("Original playlist delay = %d ms", delay));
 
         // Apply a minimum delay, so we're not constantly reloading when there's an empty queue.
         long nextUpdateTime = now + delay;
         long timeBetweenUpdates = nextUpdateTime - mLastUpdateTime;
-        Log.d(TAG, String.format("now = %d\nnextUpdateTime = %d\nmLastUpdateTime = %d\ntimeBetweenUpdates = %d ms", now, nextUpdateTime, mLastUpdateTime, timeBetweenUpdates));
         if(timeBetweenUpdates < MIN_AUTO_REFRESH_TIME) {
             delay = MIN_AUTO_REFRESH_TIME - timeBetweenUpdates;
         }
-        Log.d(TAG, String.format("Schedule next playlist update in %d ms", delay));
 
         // Remove any old auto-update callbacks before posting this one.
         mHandler.removeCallbacks(autoUpdatePlaylist);
@@ -264,7 +257,6 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
 
     private Runnable autoUpdatePlaylist = new Runnable() {
         public void run() {
-            Log.d(TAG, "PLAYLIST AUTO UPDATE TIME!");
             update(mContext, false);
             // The next update will be scheduled after our UpdateTask completes.
         }

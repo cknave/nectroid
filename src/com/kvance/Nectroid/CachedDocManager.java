@@ -94,36 +94,29 @@ abstract class CachedDocManager<Result> extends BaseDocManager
         @Override
         protected Void doInBackground(Void... args)
         {
-            Log.d(TAG, "IN doInBackground()");
             Cache.DocId docId = getDocId();
             String response = null;
 
             // If requested, try using the cache first.
             if(mShouldUseCache) {
-                Log.d(TAG, "Checking cache");
                 response = Cache.read(docId, mContext);
                 onCachedCopyRetrieved(mContext);
             }
 
             // If there's no cached copy, or we don't want it, fetch it.
             if(response == null) {
-                Log.d(TAG, "No cached copy (or we didn't want it)");
                 URL url = Cache.getUrlForDocId(docId, mContext);
                 FetchUrl.Result fetchResult = FetchUrl.get(url);
                 response = fetchResult.getResponse();
                 if(response != null && response.length() > 0) {
-                    Log.d(TAG, "Got a new document.");
                     // Cache this version.
                     Cache.write(docId, response, mContext);
                     onNewCopyRetrieved(fetchResult, mContext);
-                } else {
-                    Log.d(TAG, "Download failed.");
                 }
             }
 
             // Parse the result.
             if(response != null) {
-                Log.d(TAG, String.format("Parsing document (%d characters).", response.length()));
                 mResult = parseDocument(response, mContext);
             }
             return null;
@@ -141,11 +134,9 @@ abstract class CachedDocManager<Result> extends BaseDocManager
         protected void onPostExecute(Void result)
         {
             if(mResult != null) {
-                Log.d(TAG, "Notifying success.");
                 notifyFinished(mResult);
                 onParserSuccess(mResult, mContext);
             } else {
-                Log.d(TAG, "Notifying failure.");
                 notifyFailed();
             }
             mUpdateTask = null;
