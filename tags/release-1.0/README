@@ -1,0 +1,16 @@
+Nectroid source code
+(C) 2010 Kevin Vance <kvance@kvance.com>
+
+Distribute under the terms of the GNU GPL v3.
+
+
+NOTE: ic_menu_refresh.png is Copyright (C) The Android Open Source
+      Project.
+
+
+Build instructions:
+$ android update project -n Nectroid -p .
+$ ant debug
+
+Have fun!
+-- kvance
