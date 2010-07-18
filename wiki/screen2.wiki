@@ -1,0 +1,3 @@
+#summary Screenshot 2
+
+http://nectroid.googlecode.com/svn/wiki/img/nectroid2.png
