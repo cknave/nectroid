@@ -24,4 +24,9 @@
     <style name="oneliner_author" parent="@android:style/TextAppearance">
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="about_title" parent="@android:style/TextAppearance">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">30sp</item>
+    </style>
 </resources>
