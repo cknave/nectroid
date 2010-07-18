@@ -2,4 +2,4 @@
 
 = Screenshots =
 
-|| [screen1 http://nectroid.googlecode.com/svn/wiki/img/nectroid1_thumb.jpg] || [screen2 http://nectroid.googlecode.com/svn/wiki/img/nectroid2_thumb.jpg] ||
+|| [http://code.google.com/p/nectroid/wiki/screen1 http://nectroid.googlecode.com/svn/wiki/img/nectroid1_thumb.jpg] || [http://code.google.com/p/nectroid/wiki/screen2 http://nectroid.googlecode.com/svn/wiki/img/nectroid2_thumb.jpg] ||
