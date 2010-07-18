@@ -75,7 +75,6 @@ public class OneLinerManager extends AutoRefreshDocManager<OneLiner.List>
     {
         try {
             mOneLiners = OneLiner.listFromXml(xmlData);
-            Log.d(TAG, "Parsed OK");
         } catch(SAXException e) {
             mOneLiners = null;
         }
@@ -125,11 +124,9 @@ public class OneLinerManager extends AutoRefreshDocManager<OneLiner.List>
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
     {
-        Log.d(TAG, "onSharedPreferenceChanged: " + key);
         if(key.equals(Prefs.ONELINER_REFRESH_PERIOD_KEY)) {
             // Reschedule the next update.
             if(!mAutoRefreshRequesters.isEmpty()) {
-                Log.d(TAG, "OneLiner refresh time changed.  Rescheduling.");
                 scheduleNextRefresh(mContext);
             }
         }
@@ -164,14 +161,11 @@ public class OneLinerManager extends AutoRefreshDocManager<OneLiner.List>
         } else {
             // Auto-refresh disabled.
             mHandler.removeCallbacks(autoUpdateOneLiners);
-            Log.d(TAG, "No more oneliner updates");
             return;
         }
 
         mHandler.removeCallbacks(autoUpdateOneLiners);
         mHandler.postDelayed(autoUpdateOneLiners, delay);
-
-        Log.d(TAG, String.format("Scheduled oneliner update in %d ms", delay));
     }
 
     @Override
@@ -182,7 +176,6 @@ public class OneLinerManager extends AutoRefreshDocManager<OneLiner.List>
 
     private Runnable autoUpdateOneLiners = new Runnable() {
         public void run() {
-            Log.d(TAG, "AUTO UPDATING ONELINERS");
             update(mContext, false);
         }
     };

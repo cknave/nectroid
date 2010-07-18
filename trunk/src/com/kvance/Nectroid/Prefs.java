@@ -70,13 +70,11 @@ class Prefs
         if(retval == null) {
             retval = ONELINER_REFRESH_PERIOD;
         }
-        Log.d(TAG, String.format("getOneLinerRefreshPeriod (retval=%d)", retval));
         return retval;
     }
 
     public static void setOneLinerRefreshPeriod(int period, Context context)
     {
-        Log.d(TAG, String.format("setOneLinerRefreshPeriod(%d)", period));
         setIntFromString(ONELINER_REFRESH_PERIOD_KEY, period, context);
     }
 

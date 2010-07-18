@@ -100,11 +100,8 @@ public class PlayerService extends ForegroundService
             // MediaPlayer.release() blocks for a few seconds, so run it in another thread.
             new AsyncTask<Void, Void, Void>() {
                 public Void doInBackground(Void... args) {
-                    Log.d(TAG, "Issuing stop()");
                     mMP.stop();
-                    Log.d(TAG, "Issuing release()");
                     mMP.release();
-                    Log.d(TAG, "Cleaned up");
                     return null;
                 }
             }.execute();
@@ -121,7 +118,6 @@ public class PlayerService extends ForegroundService
     @Override
     public void onSongChanged(Playlist.EntryAndTimeLeft newSong)
     {
-        Log.d(TAG, "onSongChanged");
         updateSongInfo(newSong.getEntry());
     }
 
@@ -169,7 +165,6 @@ public class PlayerService extends ForegroundService
             stopSelf();
 
         } else {
-            Log.d(TAG, "Got play command");
             startPlaying(intent.getData());
         }
     }
@@ -184,9 +179,7 @@ public class PlayerService extends ForegroundService
         boolean error = false;
         mMP = new MediaPlayer();
         try {
-            Log.d(TAG, "Setting data source");
             mMP.setDataSource(stream.toString());
-            Log.d(TAG, "Data source set");
         } catch(IOException e) {
             error = true;
         }
@@ -194,9 +187,7 @@ public class PlayerService extends ForegroundService
         if(!error) {
             mMP.setOnPreparedListener(this);
             mMP.setOnErrorListener(this);
-            Log.d(TAG, "Preparing async");
             mMP.prepareAsync();
-            Log.d(TAG, "Preparing underway");
             startForegroundCompat(PLAYING_ID, mNotification);
             mPlayerManager.setPlayerState(State.LOADING);
         } else {

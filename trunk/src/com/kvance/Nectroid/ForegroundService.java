@@ -139,7 +139,6 @@ public abstract class ForegroundService extends Service {
     // method will not be called.
     @Override
     public void onStart(Intent intent, int startId) {
-        Log.d("ForegroundService", "in OLD onStart()");//XXX
         handleCommand(intent);
     }
 
@@ -147,7 +146,6 @@ public abstract class ForegroundService extends Service {
     @Override
     */
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("ForegroundService", "in NEW onStartCommand()");//XXX
         handleCommand(intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
