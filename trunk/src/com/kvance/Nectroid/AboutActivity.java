@@ -18,6 +18,9 @@ package com.kvance.Nectroid;
 import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
+import android.widget.TextView;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 
 
 public class AboutActivity extends Activity
@@ -27,6 +30,19 @@ public class AboutActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
+
+        // Fill in title.
+        String version;
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(),
+                    PackageManager.GET_META_DATA);
+            version = pInfo.versionName;
+        } catch(PackageManager.NameNotFoundException e) {
+            version = "";
+        }
+        String aboutText = getString(R.string.app_name) + " " + version;
+        TextView textView = (TextView)findViewById(R.id.about_title);
+        textView.setText(aboutText);
 
         // Set up WebView widget.
         WebView webView = (WebView)findViewById(R.id.about_webview);
