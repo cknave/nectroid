@@ -48,7 +48,7 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
     private long mLastUpdateTime;
 
     // Milliseconds before we're considered "almost done"
-    private static final long ALMOST_DONE_TIME = 40000;
+    private static final long ALMOST_DONE_TIME = 25000;
 
     // Minimum time between auto-refreshes (in ms)
     private static final long MIN_AUTO_REFRESH_TIME = 30000;
