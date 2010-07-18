@@ -1,0 +1,5 @@
+#summary Nectroid screenshots
+
+= Screenshots =
+
+|| [http://nectroid.googlecode.com/svn/wiki/img/nectroid1.png http://nectroid.googlecode.com/svn/wiki/img/nectroid1_thumb.jpg] || [http://nectroid.googlecode.com/svn/wiki/img/nectroid2.png http://nectroid.googlecode.com/svn/wiki/img/nectroid2_thumb.jpg] ||
