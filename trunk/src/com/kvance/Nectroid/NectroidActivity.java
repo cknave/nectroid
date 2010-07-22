@@ -432,7 +432,6 @@ public class NectroidActivity extends Activity
                 // If we selected a new stream, we can now remember the choice since we verified
                 // that it's playable.
                 if(mStreamChoice != null) {
-                    Log.d(TAG, "Saving stream choice.");
                     Prefs.setStreamUrlAndId(mStreamChoice.stream, mStreamChoice.id, this);
                     mStreamChoice = null;
                 }
