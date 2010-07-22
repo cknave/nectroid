@@ -62,6 +62,10 @@ public class NectroidActivity extends Activity
     private Handler mHandler;
     private int mTimeLeft;
 
+    // When a new stream is selected, store the choice here until we verify it works.
+    private class StreamChoice { URL stream; int id; }
+    private StreamChoice mStreamChoice;
+
 
     // Activity request codes
     private static final int PICK_STREAM_REQUEST = 0;
@@ -404,8 +408,10 @@ public class NectroidActivity extends Activity
         }
 
         if(streamUrl != null) {
-            // Save the choice so we don't have to ask next time.
-            Prefs.setStreamUrlAndId(streamUrl, id, this);
+            // Remember the choice.  Once we verify we can play the stream, save it to prefs.
+            mStreamChoice = new StreamChoice();
+            mStreamChoice.stream = streamUrl;
+            mStreamChoice.id = id;
             playStream(streamUrl);
         }
     }
@@ -422,8 +428,17 @@ public class NectroidActivity extends Activity
                 mPlayButton.setImageResource(R.drawable.play);
                 break;
 
-            case LOADING:
             case PLAYING:
+                // If we selected a new stream, we can now remember the choice since we verified
+                // that it's playable.
+                if(mStreamChoice != null) {
+                    Log.d(TAG, "Saving stream choice.");
+                    Prefs.setStreamUrlAndId(mStreamChoice.stream, mStreamChoice.id, this);
+                    mStreamChoice = null;
+                }
+                // And continue on to case LOADING...
+
+            case LOADING:
                 mPlayButton.setImageResource(R.drawable.stop);
                 break;
         }
