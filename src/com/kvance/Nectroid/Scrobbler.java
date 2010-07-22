@@ -46,7 +46,6 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
 
     public void start()
     {
-        Log.d(TAG, "Scrobbler.start()");
         if(mActive == true) {
             Log.w(TAG, "Tried to start the scrobbler when it was already running.");
 
@@ -66,7 +65,6 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
 
     public void stop()
     {
-        Log.d(TAG, "Scrobbler.stop()");
         if(mActive == false) {
             Log.w(TAG, "Tried to stop the scrobbler, but it wasn't running.");
 
@@ -126,7 +124,6 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
 
     private void notifySong(Playlist.EntryAndTimeLeft ent)
     {
-        Log.d(TAG, "SCROBBLER notifying song");
         Playlist.Entry song = ent.getEntry();
         int timeLeft = ent.getTimeLeft();
 
@@ -143,7 +140,6 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
 
     private void notifyStopped()
     {
-        Log.d(TAG, "SCROBBLER notifying stopped");
         Intent i = new Intent("fm.last.android.playbackcomplete");
         mContext.sendBroadcast(i);
     }
