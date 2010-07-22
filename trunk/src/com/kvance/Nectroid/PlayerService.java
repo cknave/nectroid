@@ -214,10 +214,7 @@ public class PlayerService extends ForegroundService
             int numArtists = artists.size();
             if(numArtists > 0) {
                 sb.append(" by ");
-                sb.append(artists.get(0).getString());
-            }
-            if(numArtists > 1) {
-                sb.append(", et al.");
+                sb.append(song.getArtistString());
             }
             info = sb.toString();
         }

@@ -25,6 +25,8 @@
 
     <!-- Settings strings -->
     <string name="select_a_stream">Select a stream</string>
+    <string name="use_scrobbler">Use Audioscrobbler</string>
+    <string name="requires_lastfm">Requires the Last.fm app</string>
     <string name="oneliner_refresh_time">OneLiner refresh time</string>
     <string name="every_30_seconds">Every 30 seconds</string>
     <string name="every_1_minute">Every 1 minute</string>

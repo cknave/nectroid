@@ -103,6 +103,25 @@ class Playlist
             sb.append("]>");
             return sb.toString();
         }
+
+        /** Return the name of the artist.
+         *
+         * If more than one artist was credited, "et al." is added.
+         */
+        public String getArtistString()
+        {
+            int numArtists = mArtists.size();
+            if(numArtists == 0) {
+                return "UNKNOWN";
+            } else {
+                String artist = mArtists.get(0).getString();
+                if(numArtists == 1) {
+                    return artist;
+                } else {
+                    return artist + ", et al.";
+                }
+            }
+        }
     }
 
     public class IdString

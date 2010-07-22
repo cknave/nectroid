@@ -14,6 +14,7 @@
 // along with Nectroid.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.kvance.Nectroid;
+import java.util.HashSet;
 
 class PlayerManager
 {
@@ -25,13 +26,15 @@ class PlayerManager
     private PlayerService mPlayer;
     private PlayerService.State mPlayerState;
 
-    private StateListener mStateListener;
+    private HashSet<StateListener> mStateListeners;
 
 
     public PlayerManager()
     {
+        mStateListeners = new HashSet<StateListener>();
         mPlayerState = PlayerService.State.STOPPED;
     }
+
 
     ///
     /// Getters
@@ -43,8 +46,7 @@ class PlayerManager
 
     ///
     /// Setters
-
-    public void setStateListener(StateListener listener) { mStateListener = listener; }
+    ///
 
     public void setPlayer(PlayerService player)
     {
@@ -76,14 +78,25 @@ class PlayerManager
     }
 
 
+    public void addStateListener(StateListener listener)
+    {
+        mStateListeners.add(listener);
+    }
+
+    public void removeStateListener(StateListener listener)
+    {
+        mStateListeners.remove(listener);
+    }
+
+
     ///
     /// Utility methods
     ///
 
     private void notifyStateChanged()
     {
-        if(mStateListener != null) {
-            mStateListener.onStateChanged(mPlayerState);
+        for(StateListener listener : mStateListeners) {
+            listener.onStateChanged(mPlayerState);
         }
     }
 }
