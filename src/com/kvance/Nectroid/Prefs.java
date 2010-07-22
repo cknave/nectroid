@@ -37,19 +37,21 @@ class Prefs
     public static final String ONELINER_REFRESH_PERIOD_KEY = "oneliner_refresh_period";
     public static final String STREAM_URL_KEY = "stream_url";
     public static final String STREAM_ID_KEY = "stream_id";
+    public static final String USE_SCROBBLER_KEY = "use_scrobbler";
 
     // Timestamp formatter
     private static final SimpleDateFormat timestampFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
 
     // Defaults
-    private static final int ONELINER_REFRESH_PERIOD = 60;
+    public static final int DEFAULT_ONELINER_REFRESH_PERIOD = 60;
+    public static final boolean DEFAULT_USE_SCROBBLER = true;
 
     private static final String TAG = "Nectroid";
 
 
     ///
-    /// Getter/setter pairs
+    /// Getters
     ///
 
     public static Date getPlaylistUpdateTime(Context context)
@@ -57,38 +59,25 @@ class Prefs
         return getDate(PLAYLIST_UPDATE_TIME_KEY, context, "playlist update time");
     }
 
-    public static void setPlaylistUpdateTime(Date timeBase, Context context)
-    {
-        setDate(PLAYLIST_UPDATE_TIME_KEY, timeBase, context);
-    }
-
-
     public static int getOneLinerRefreshPeriod(Context context)
     {
         Integer retval = getIntFromString(ONELINER_REFRESH_PERIOD_KEY, context,
                 "oneliner refresh period");
         if(retval == null) {
-            retval = ONELINER_REFRESH_PERIOD;
+            retval = DEFAULT_ONELINER_REFRESH_PERIOD;
         }
         return retval;
     }
-
-    public static void setOneLinerRefreshPeriod(int period, Context context)
-    {
-        setIntFromString(ONELINER_REFRESH_PERIOD_KEY, period, context);
-    }
-
 
     public static Date getOneLinerUpdateTime(Context context)
     {
         return getDate(ONELINER_UPDATE_TIME_KEY, context, "oneliner update time");
     }
 
-    public static void setOneLinerUpdateTime(Date timestamp, Context context)
+    public static boolean getUseScrobbler(Context context)
     {
-        setDate(ONELINER_UPDATE_TIME_KEY, timestamp, context);
+        return sp(context).getBoolean(USE_SCROBBLER_KEY, DEFAULT_USE_SCROBBLER);
     }
-
 
     public static URL getStreamUrl(Context context)
     {
@@ -114,6 +103,30 @@ class Prefs
         return retval;
     }
 
+
+    ///
+    /// Setters
+    ///
+
+    public static void setPlaylistUpdateTime(Date timeBase, Context context)
+    {
+        setDate(PLAYLIST_UPDATE_TIME_KEY, timeBase, context);
+    }
+
+    public static void setOneLinerRefreshPeriod(int period, Context context)
+    {
+        setIntFromString(ONELINER_REFRESH_PERIOD_KEY, period, context);
+    }
+
+    public static void setOneLinerUpdateTime(Date timestamp, Context context)
+    {
+        setDate(ONELINER_UPDATE_TIME_KEY, timestamp, context);
+    }
+
+    public static void setUseScrobbler(Context context, boolean useScrobbler)
+    {
+        esp(context).putBoolean(USE_SCROBBLER_KEY, useScrobbler).commit();
+    }
 
     public static void setStreamUrlAndId(URL url, int id, Context context)
     {

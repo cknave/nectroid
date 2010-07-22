@@ -4,6 +4,10 @@
     <Preference android:title="@string/select_a_stream"
         android:key="stream_url"/>
 
+    <CheckBoxPreference android:title="@string/use_scrobbler"
+        android:key="use_scrobbler"
+        android:defaultValue="true"/>
+
     <ListPreference android:title="@string/oneliner_refresh_time"
         android:key="oneliner_refresh_period"
         android:defaultValue="60"

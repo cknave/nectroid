@@ -107,7 +107,7 @@ public class NectroidActivity extends Activity
 
         // Subscribe to player events, and check on the current player state.
         mPlayerManager = app.getPlayerManager();
-        mPlayerManager.setStateListener(this);
+        mPlayerManager.addStateListener(this);
         onStateChanged(mPlayerManager.getPlayerState());
 
         // Subscribe to oneliner events.
@@ -135,7 +135,7 @@ public class NectroidActivity extends Activity
         // Unsubscribe from various events.
         mPlaylistManager.removeTaskListener(this);
         mPlaylistManager.removeSongListener(this);
-        mPlayerManager.setStateListener(null);
+        mPlayerManager.removeStateListener(this);
         mOneLinerManager.removeTaskListener(this);
 
         super.onStop();

@@ -18,14 +18,17 @@ package com.kvance.Nectroid;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 
 
-public class NectroidApplication extends Application
+public class NectroidApplication extends Application implements OnSharedPreferenceChangeListener
 {
     private PlaylistManager mPlaylistManager;
     private StreamsManager mStreamsManager;
     private PlayerManager mPlayerManager;
     private OneLinerManager mOneLinerManager;
+    private Scrobbler mScrobbler;
 
 
     @Override
@@ -36,8 +39,17 @@ public class NectroidApplication extends Application
         mPlaylistManager = new PlaylistManager(appContext);
         mStreamsManager = new StreamsManager();
         mPlayerManager = new PlayerManager();
+
         mOneLinerManager = new OneLinerManager(appContext);
         mOneLinerManager.listenForPreferences();
+
+        // Start or stop the scrobbler by user preference.
+        mScrobbler = new Scrobbler(this);
+        if(Prefs.getUseScrobbler(this)) {
+            mScrobbler.start();
+        }
+        SharedPreferences p = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
+        p.registerOnSharedPreferenceChangeListener(this);
     }
 
 
@@ -55,14 +67,27 @@ public class NectroidApplication extends Application
     {
         super.onTerminate();
         mOneLinerManager.unlistenForPreferences();
+        if(mScrobbler.isActive()) {
+            mScrobbler.stop();
+        }
+        SharedPreferences p = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
+        p.registerOnSharedPreferenceChangeListener(this);
     }
 
+
+    ///
+    /// Getters
+    ///
 
     public PlaylistManager getPlaylistManager() { return mPlaylistManager; }
     public StreamsManager getStreamsManager() { return mStreamsManager; }
     public PlayerManager getPlayerManager() { return mPlayerManager; }
     public OneLinerManager getOneLinerManager() { return mOneLinerManager; }
 
+
+    ///
+    /// Public interface
+    ///
 
     /** Return true if any of our managers are loading something. */
     public boolean isLoadingAnything()
@@ -71,5 +96,38 @@ public class NectroidApplication extends Application
             mStreamsManager.isUpdating() ||
             mOneLinerManager.isUpdating() ||
             mPlayerManager.getPlayerState() == PlayerService.State.LOADING;
+    }
+
+
+    ///
+    /// Preference updates
+    ///
+
+    /** Start listening for changes in the oneliner refresh time preference. */
+    private void listenForPreferences()
+    {
+        SharedPreferences p = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
+        p.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    /** Stop listening for preference changes. */
+    private void unlistenForPreferences()
+    {
+        SharedPreferences p = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
+        p.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
+    {
+        if(key.equals(Prefs.USE_SCROBBLER_KEY)) {
+            // Start or stop the scrobbler as requested.
+            boolean useScrobbler = prefs.getBoolean(key, Prefs.DEFAULT_USE_SCROBBLER);
+            if(useScrobbler && !mScrobbler.isActive()) {
+                mScrobbler.start();
+            } else if(!useScrobbler && mScrobbler.isActive()) {
+                mScrobbler.stop();
+            }
+        }
     }
 }
