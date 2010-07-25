@@ -125,16 +125,17 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
     private void notifySong(Playlist.EntryAndTimeLeft ent)
     {
         Playlist.Entry song = ent.getEntry();
-        int timeLeft = ent.getTimeLeft();
 
-        // Report the "duration" as the time left, since we don't want to consider a song "skipped"
-        // because we started it 2 seconds before it was over.
-        long duration = timeLeft * 1000;
+        // Convert seconds to milliseconds
+        long timeLeft = ent.getTimeLeft() * 1000;
+        long duration = song.getLength() * 1000;
+        long position = duration - timeLeft;
 
         Intent i = new Intent("fm.last.android.metachanged");
         i.putExtra("artist", song.getArtistString());
         i.putExtra("track", song.getTitle());
         i.putExtra("duration", duration);
+        i.putExtra("position", position);
         mContext.sendBroadcast(i);
     }
 
