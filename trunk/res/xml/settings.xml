@@ -5,6 +5,7 @@
         android:key="stream_url"/>
 
     <CheckBoxPreference android:title="@string/use_scrobbler"
+        android:summary="@string/requires_lastfm"
         android:key="use_scrobbler"
         android:defaultValue="true"/>
 
