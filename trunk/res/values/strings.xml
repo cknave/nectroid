@@ -35,14 +35,14 @@
     <string name="manual_refresh_only">Manual refresh only</string>
 
     <!-- URL format strings -->
-    <string name="url_fmt_song">http://scenemusic.eu/demovibes/song/%s/</string>
-    <string name="url_fmt_artist">http://scenemusic.eu/demovibes/artist/%s/</string>
-    <string name="url_fmt_user">http://scenemusic.eu/demovibes/user/%s/</string>
+    <string name="url_fmt_song">http://www.scenemusic.net/demovibes/song/%s/</string>
+    <string name="url_fmt_artist">http://www.scenemusic.net/demovibes/artist/%s/</string>
+    <string name="url_fmt_user">http://www.scenemusic.net/demovibes/user/%s/</string>
 
     <!-- Document URLs -->
-    <string name="url_queue">http://scenemusic.eu/demovibes/xml/queue/</string>
-    <string name="url_streams">http://scenemusic.eu/demovibes/xml/streams/</string>
-    <string name="url_oneliner">http://scenemusic.eu/demovibes/xml/oneliner/</string>
+    <string name="url_queue">http://www.scenemusic.net/demovibes/xml/queue/</string>
+    <string name="url_streams">http://www.scenemusic.net/demovibes/xml/streams/</string>
+    <string name="url_oneliner">http://www.scenemusic.net/demovibes/xml/oneliner/</string>
 
     <!-- Document cache filenames -->
     <string name="filename_queue">queue.xml</string>
