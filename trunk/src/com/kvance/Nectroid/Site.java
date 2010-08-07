@@ -68,19 +68,26 @@ class Site
 
     public void setColor(String colorString)
     {
-        // Null colorString is a null color.
-        if(colorString == null) {
+        // Null or empty colorString is a null color.
+        if(colorString == null || colorString.length() == 0) {
             mColor = null;
             return;
         }
 
         // Parse the color string.
-        Integer colorInt;
+        Integer colorInt = null;
         try {
             colorInt = Color.parseColor(colorString);
-            setColor(colorInt);
         } catch(IllegalArgumentException e) {
-            Log.d(TAG, String.format("Unable to parse color \"%s\"", colorString));
+            // Handled below
+        } catch(StringIndexOutOfBoundsException e) {
+            // Handled below
+        }
+        setColor(colorInt);
+
+        // Error warning.
+        if(colorInt == null) {
+            Log.w(TAG, String.format("Unable to parse color \"%s\"", colorString));
         }
     }
 }
