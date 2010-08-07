@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Test color shifter for the Nectroid background."""
 #
 # This file is part of Nectroid.
 #
@@ -14,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Nectroid.  If not, see <http://www.gnu.org/licenses/>.
-"""Test color shifter for the Nectroid background."""
 
 import colorsys
 
