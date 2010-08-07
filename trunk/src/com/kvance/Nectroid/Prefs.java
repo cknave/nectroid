@@ -38,6 +38,7 @@ class Prefs
     public static final String STREAM_URL_KEY = "stream_url";
     public static final String STREAM_ID_KEY = "stream_id";
     public static final String USE_SCROBBLER_KEY = "use_scrobbler";
+    public static final String SITE_ID_KEY = "site_id";
 
     // Timestamp formatter
     private static final SimpleDateFormat timestampFormat = new SimpleDateFormat(
@@ -46,6 +47,7 @@ class Prefs
     // Defaults
     public static final int DEFAULT_ONELINER_REFRESH_PERIOD = 60;
     public static final boolean DEFAULT_USE_SCROBBLER = true;
+    public static final int DEFAULT_SITE_ID = 0;
 
     private static final String TAG = "Nectroid";
 
@@ -77,6 +79,11 @@ class Prefs
     public static boolean getUseScrobbler(Context context)
     {
         return sp(context).getBoolean(USE_SCROBBLER_KEY, DEFAULT_USE_SCROBBLER);
+    }
+
+    public static int getSiteId(Context context)
+    {
+        return sp(context).getInt(SITE_ID_KEY, DEFAULT_SITE_ID);
     }
 
     public static URL getStreamUrl(Context context)
@@ -126,6 +133,11 @@ class Prefs
     public static void setUseScrobbler(Context context, boolean useScrobbler)
     {
         esp(context).putBoolean(USE_SCROBBLER_KEY, useScrobbler).commit();
+    }
+
+    public static void setSiteId(Context context, int id)
+    {
+        esp(context).putInt(SITE_ID_KEY, id).commit();
     }
 
     public static void setStreamUrlAndId(URL url, int id, Context context)
