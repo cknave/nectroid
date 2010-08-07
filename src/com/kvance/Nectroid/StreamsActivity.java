@@ -38,6 +38,7 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
     private StreamsManager mStreamsManager;
     private List<Stream> mStreams;
     private StreamsAdapter mListAdapter;
+    private TextView mEmptyTextView;
 
     private static final String TAG = "Nectroid";
 
@@ -60,8 +61,8 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         // Set the empty text
-        TextView emptyView = (TextView)findViewById(android.R.id.empty);
-        emptyView.setText(R.string.no_streams);
+        mEmptyTextView = (TextView)findViewById(android.R.id.empty);
+        mEmptyTextView.setText(R.string.no_streams);
     }
 
     @Override
@@ -82,6 +83,7 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
             db.close();
         }
         if(mStreams == null || mStreams.size() == 0) {
+            mEmptyTextView.setText(R.string.loading_streams);
             mStreamsManager.update(this, true);
         }
 
@@ -151,11 +153,13 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         mStreams = (Stream.List)result;
         mListAdapter.setStreams(mStreams);
         setProgressBarIndeterminateVisibility(false);
+        mEmptyTextView.setText(R.string.no_streams);
     }
 
     public void onTaskCancelled(Object manager)
     {
         setProgressBarIndeterminateVisibility(false);
+        mEmptyTextView.setText(R.string.no_streams);
     }
 
     public void onTaskFailed(Object manager)
@@ -163,5 +167,6 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         setProgressBarIndeterminateVisibility(false);
         Toast errorToast = Toast.makeText(this, R.string.streams_failed, Toast.LENGTH_SHORT);
         errorToast.show();
+        mEmptyTextView.setText(R.string.no_streams);
     }
 }
