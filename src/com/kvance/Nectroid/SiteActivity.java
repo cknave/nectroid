@@ -26,6 +26,8 @@ import android.widget.TextView;
 import android.view.View;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
+import android.text.TextWatcher;
+import android.text.Editable;
 
 
 public class SiteActivity extends Activity
@@ -84,6 +86,22 @@ public class SiteActivity extends Activity
         fillFieldsWithSite(mSite);
     }
 
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        // Start listening for changes in the color field.
+        mColorView.addTextChangedListener(onColorChanged);
+    }
+
+    @Override
+    public void onStop()
+    {
+        super.onStop();
+        // Stop listening to the color field.
+        mColorView.removeTextChangedListener(onColorChanged);
+    }
+
 
     ///
     /// Button events
@@ -107,6 +125,18 @@ public class SiteActivity extends Activity
     ///
     /// Text field events
     ///
+
+    private TextWatcher onColorChanged = new TextWatcher() {
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        public void afterTextChanged(Editable s) {
+            // Helpfully add the # prefix.
+            if(s.length() > 0 && s.charAt(0) != '#') {
+                s.insert(0, "#");
+            }
+        }
+    };
+
 
     private TextView.OnEditorActionListener onEditorAction = new TextView.OnEditorActionListener() {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
