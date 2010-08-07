@@ -18,24 +18,28 @@ package com.kvance.Nectroid;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View.OnClickListener;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.TextView;
-import android.view.View;
-import android.view.KeyEvent;
-import android.view.inputmethod.EditorInfo;
-import android.text.TextWatcher;
-import android.text.Editable;
 
 
 public class SiteActivity extends Activity
 {
     private Site mSite;
+
     private TextView mNameView;
     private TextView mUrlView;
     private TextView mColorView;
+
+    private BackgroundColorizer mBackgroundColorizer;
 
     private static final String DEFAULT_NAME = "";
     private static final String DEFAULT_URL = "";
@@ -52,6 +56,7 @@ public class SiteActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.site);
 
+        // Set the background to the normal color first, in case this site has an invalid one.
         ((NectroidApplication)getApplication()).updateWindowBackground(getWindow());
 
         // Create a new site object, or load an existing one depending on how we were started.
@@ -67,6 +72,10 @@ public class SiteActivity extends Activity
         } else {
             throw new RuntimeException("Unknown action " + action);
         }
+
+        // Update the background color to our site's color.
+        mBackgroundColorizer = new BackgroundColorizer(this);
+        updateBackgroundColor(mSite.getColor());
 
         // Get widget references
         mNameView = (TextView)findViewById(R.id.site_name);
@@ -134,6 +143,7 @@ public class SiteActivity extends Activity
             if(s.length() > 0 && s.charAt(0) != '#') {
                 s.insert(0, "#");
             }
+            updateBackgroundColor(s.toString());
         }
     };
 
@@ -251,5 +261,31 @@ public class SiteActivity extends Activity
         result.setData(siteUri);
         setResult(Activity.RESULT_OK, result);
         finish();
+    }
+
+
+    /** Update the background color to this color int. */
+    private void updateBackgroundColor(Integer colorInt)
+    {
+        if(colorInt != null) {
+            mBackgroundColorizer.shiftBackgroundColorTo(colorInt);
+            getWindow().setBackgroundDrawable(mBackgroundColorizer.getDrawable());
+        }
+    }
+
+    /** Update the background color to this color string. */
+    private void updateBackgroundColor(String colorString)
+    {
+        // If the string is parsable, update the color.
+        if(colorString != null) {
+            try {
+                int colorInt = Color.parseColor(colorString);
+                updateBackgroundColor(colorInt);
+            } catch(IllegalArgumentException e) {
+                // Ignore invalid colors
+            } catch(StringIndexOutOfBoundsException e) {
+                // Ignore blank colors
+            }
+        }
     }
 }
