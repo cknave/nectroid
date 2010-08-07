@@ -31,6 +31,8 @@ public class AboutActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
 
+        ((NectroidApplication)getApplication()).updateWindowBackground(getWindow());
+
         // Fill in title.
         String version;
         try {

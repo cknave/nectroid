@@ -77,8 +77,12 @@ public class PlayerService extends ForegroundService
         // Get the current song for our notification.
         mPlaylistManager = app.getPlaylistManager();
         Playlist.EntryAndTimeLeft ent = mPlaylistManager.getCurrentSong();
-        updateSongInfo(ent.getEntry());
-
+        if(ent != null) {
+            updateSongInfo(ent.getEntry());
+        } else {
+            updateSongInfo(null);
+        }
+            
         // Register for song updates.
         mPlaylistManager.addSongListener(this);
         mPlaylistManager.requestAutoRefresh(this);

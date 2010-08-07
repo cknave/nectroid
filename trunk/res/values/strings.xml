@@ -25,6 +25,7 @@
 
     <!-- Settings strings -->
     <string name="select_a_stream">Select a stream</string>
+    <string name="select_a_site">Select a site</string>
     <string name="use_scrobbler">Use Audioscrobbler</string>
     <string name="requires_lastfm">Requires the Last.fm app</string>
     <string name="oneliner_refresh_time">OneLiner refresh time</string>
@@ -33,16 +34,27 @@
     <string name="every_2_minutes">Every 2 minutes</string>
     <string name="every_5_minutes">Every 5 minutes</string>
     <string name="manual_refresh_only">Manual refresh only</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="new_site">New site</string>
+    <string name="edit_site">Edit site</string>
+    <string name="site">Site</string>
+    <string name="url">URL</string>
+    <string name="color">Color</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_delete_last_site">You cannot delete the last site.</string>
+    <string name="confirm_delete">Delete %s?</string>
 
     <!-- URL format strings -->
-    <string name="url_fmt_song">http://www.scenemusic.net/demovibes/song/%s/</string>
-    <string name="url_fmt_artist">http://www.scenemusic.net/demovibes/artist/%s/</string>
-    <string name="url_fmt_user">http://www.scenemusic.net/demovibes/user/%s/</string>
+    <string name="url_fmt_song">song/%s/</string>
+    <string name="url_fmt_artist">artist/%s/</string>
+    <string name="url_fmt_user">user/%s/</string>
 
     <!-- Document URLs -->
-    <string name="url_queue">http://www.scenemusic.net/demovibes/xml/queue/</string>
-    <string name="url_streams">http://www.scenemusic.net/demovibes/xml/streams/</string>
-    <string name="url_oneliner">http://www.scenemusic.net/demovibes/xml/oneliner/</string>
+    <string name="url_queue">xml/queue/</string>
+    <string name="url_streams">xml/streams/</string>
+    <string name="url_oneliner">xml/oneliner/</string>
 
     <!-- Document cache filenames -->
     <string name="filename_queue">queue.xml</string>

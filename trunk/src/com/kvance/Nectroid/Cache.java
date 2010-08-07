@@ -24,6 +24,7 @@ import java.net.URL;
 
 import android.content.Context;
 import android.util.Log;
+import java.util.EnumSet;
 
 
 class Cache
@@ -34,7 +35,25 @@ class Cache
         ONELINER,
     }
 
+    private static Site mSite;
+
     private static final String TAG = "NectroidCache";
+
+
+    /** Change to another site.
+     *
+     * This will also clear the cache if changing to a new site.
+     */
+    public static void setSite(Site site, Context ctx)
+    {
+        Log.d(TAG, String.format("Changing site to %s (id %d)", site.getName(), site.getId()));
+        if(site.getId() != Prefs.getCachedSiteId(ctx)) {
+            Log.d(TAG, String.format("Clearing cache (old id was %d)", Prefs.getCachedSiteId(ctx)));
+            Prefs.setCachedSiteId(ctx, site.getId());
+            clear(ctx);
+        }
+        mSite = site;
+    }
 
 
     /** Return the data from this document's cache or null if not cached */
@@ -89,29 +108,34 @@ class Cache
     /** Return the URL for this document */
     public static URL getUrlForDocId(DocId id, Context ctx)
     {
+        if(mSite == null) {
+            throw new RuntimeException("Tried to call getUrlForDocId() without calling setSite()");
+        }
         URL result = null;
-        String urlString;
+        String baseUrl = mSite.getBaseUrl();
+        String urlSuffix;
 
         switch(id) {
             case QUEUE:
-                urlString = ctx.getString(R.string.url_queue);
+                urlSuffix = ctx.getString(R.string.url_queue);
                 break;
 
             case STREAMS:
-                urlString = ctx.getString(R.string.url_streams);
+                urlSuffix = ctx.getString(R.string.url_streams);
                 break;
 
             case ONELINER:
-                urlString = ctx.getString(R.string.url_oneliner);
+                urlSuffix = ctx.getString(R.string.url_oneliner);
                 break;
 
             default:
-                urlString = null;
+                urlSuffix = null;
                 Log.e(TAG, String.format("No URL for DocId %d", id.ordinal()));
                 break;
         }
 
-        if(urlString != null) {
+        if(urlSuffix != null) {
+            String urlString = baseUrl + urlSuffix;
             try {
                 result = new URL(urlString);
             } catch(MalformedURLException e) {
@@ -139,5 +163,22 @@ class Cache
         }
         Log.e(TAG, String.format("No path for DocId %d", id.ordinal()));
         return null;
+    }
+
+
+    /** Clear all files from the cache. */
+    public static void clear(Context context)
+    {
+        File cacheDir = context.getCacheDir();
+        for(DocId id : EnumSet.allOf(DocId.class)) {
+            String filename = getFilenameForDocId(id, context);
+            File fullPath = new File(cacheDir, getFilenameForDocId(id, context));
+            if(fullPath.exists()) {
+                // Found a cached document.  Delete it.
+                if(!fullPath.delete()) {
+                    throw new RuntimeException("Can't delete cached file " + fullPath.toString());
+                }
+            }
+        }
     }
 }

@@ -106,6 +106,16 @@ public class OneLinerManager extends AutoRefreshDocManager<OneLiner.List>
         mOneLiners = null;
     }
 
+
+    /** Reset all data. */
+    public void reset()
+    {
+        cancelUpdate();
+        mOneLiners = null;
+        mTimestamp = null;
+        mLastUpdateTime = 0L;
+    }
+
     
     /** Start listening for changes in the oneliner refresh time preference. */
     public void listenForPreferences()

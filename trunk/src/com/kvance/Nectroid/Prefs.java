@@ -39,6 +39,7 @@ class Prefs
     public static final String STREAM_ID_KEY = "stream_id";
     public static final String USE_SCROBBLER_KEY = "use_scrobbler";
     public static final String SITE_ID_KEY = "site_id";
+    public static final String CACHED_SITE_ID_KEY = "cached_site_id";
 
     // Timestamp formatter
     private static final SimpleDateFormat timestampFormat = new SimpleDateFormat(
@@ -47,7 +48,7 @@ class Prefs
     // Defaults
     public static final int DEFAULT_ONELINER_REFRESH_PERIOD = 60;
     public static final boolean DEFAULT_USE_SCROBBLER = true;
-    public static final int DEFAULT_SITE_ID = 0;
+    public static final int DEFAULT_SITE_ID = 0; // Nectarine site id
 
     private static final String TAG = "Nectroid";
 
@@ -84,6 +85,11 @@ class Prefs
     public static int getSiteId(Context context)
     {
         return sp(context).getInt(SITE_ID_KEY, DEFAULT_SITE_ID);
+    }
+
+    public static int getCachedSiteId(Context context)
+    {
+        return sp(context).getInt(CACHED_SITE_ID_KEY, DEFAULT_SITE_ID);
     }
 
     public static URL getStreamUrl(Context context)
@@ -140,12 +146,35 @@ class Prefs
         esp(context).putInt(SITE_ID_KEY, id).commit();
     }
 
-    public static void setStreamUrlAndId(URL url, int id, Context context)
+    public static void setCachedSiteId(Context context, int id)
+    {
+        esp(context).putInt(CACHED_SITE_ID_KEY, id).commit();
+    }
+
+    public static void setStream(URL url, int id, Context context)
     {
         SharedPreferences.Editor e = esp(context);
         String urlString = url.toString();
         e.putString(STREAM_URL_KEY, urlString);
         e.putInt(STREAM_ID_KEY, id);
+        e.commit();
+    }
+
+
+    ///
+    /// Clearers
+    ///
+
+    public static void clearOneLinerUpdateTime(Context context)
+    {
+        esp(context).remove(ONELINER_UPDATE_TIME_KEY).commit();
+    }
+
+    public static void clearStream(Context context)
+    {
+        SharedPreferences.Editor e = esp(context);
+        e.remove(STREAM_URL_KEY);
+        e.remove(STREAM_ID_KEY);
         e.commit();
     }
 
