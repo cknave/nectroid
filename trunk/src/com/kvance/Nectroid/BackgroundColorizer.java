@@ -16,15 +16,19 @@
 
 package com.kvance.Nectroid;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.util.Log;
-import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
+
 
 class BackgroundColorizer
 {
@@ -43,6 +47,8 @@ class BackgroundColorizer
     private static final float[] SRC_HSV = new float[3];
     {   Color.colorToHSV(SRC_COLOR, SRC_HSV); }
 
+    // New version of the BitmapDrawable constructor
+    Constructor mBitmapDrawableConstructor;
 
     BackgroundColorizer(Context context)
     {
@@ -52,6 +58,14 @@ class BackgroundColorizer
         mTempHSV = new float[3];
         mSource = getSourceBitmap(context.getResources());
         mDest = Bitmap.createBitmap(mSource.getWidth(), mSource.getHeight(), mSource.getConfig());
+
+        // Look for the newer BitmapDrawable constructor.
+        Class[] constructorArgs = { Resources.class, Bitmap.class };
+        try {
+            mBitmapDrawableConstructor = BitmapDrawable.class.getConstructor(constructorArgs);
+        } catch(NoSuchMethodException e) {
+            mBitmapDrawableConstructor = null;
+        }
     }
 
         
@@ -135,7 +149,7 @@ class BackgroundColorizer
     {
         // Repeating background:
         Resources res = mContext.getResources();
-        mDestDrawable = new BitmapDrawable(res, mDest);
+        mDestDrawable = makeBitmapDrawable(res, mDest);
         mDestDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
 
         // Layered gradient:
@@ -145,5 +159,33 @@ class BackgroundColorizer
             gradient
         };
         mLayerBackground = new LayerDrawable(layers);
+    }
+
+
+    /** Create a new BitmapDrawable for this Bitmap. */
+    private BitmapDrawable makeBitmapDrawable(Resources resources, Bitmap bitmap)
+    {
+        BitmapDrawable result = null;
+
+        // Use the new constructor if it's available.
+        if(mBitmapDrawableConstructor != null) {
+            Object[] args = {resources, bitmap};
+            try {
+                Object newInstance = mBitmapDrawableConstructor.newInstance(args);
+                result = (BitmapDrawable)newInstance;
+            } catch(InstantiationException e) {
+                // result stays null
+            } catch(IllegalAccessException e) {
+                // result stays null
+            } catch(InvocationTargetException e) {
+                // result stays null
+            }
+        }
+
+        // Otherwise, use the old constructor.
+        if(result == null) {
+            result = new BitmapDrawable(bitmap);
+        }
+        return result;
     }
 }
