@@ -21,6 +21,7 @@
     <string name="queue_empty">Queue is empty</string>
     <string name="history_empty">History is empty</string>
     <string name="no_streams">No streams available</string>
+    <string name="loading_streams">Loading streams...</string>
     <string name="about_nectroid">About Nectroid</string>
 
     <!-- Settings strings -->
