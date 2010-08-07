@@ -57,7 +57,11 @@ class BackgroundColorizer
         mShift = new float[3];
         mTempHSV = new float[3];
         mSource = getSourceBitmap(context.getResources());
-        mDest = Bitmap.createBitmap(mSource.getWidth(), mSource.getHeight(), mSource.getConfig());
+        Bitmap.Config config = mSource.getConfig();
+        if(config == null) {
+            config = Bitmap.Config.RGB_565;
+        }
+        mDest = Bitmap.createBitmap(mSource.getWidth(), mSource.getHeight(), config);
 
         // Look for the newer BitmapDrawable constructor.
         Class[] constructorArgs = { Resources.class, Bitmap.class };
