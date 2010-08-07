@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.kvance.Nectroid"
-          android:versionCode="4"
-          android:versionName="1.0.1">
+          android:versionCode="5"
+          android:versionName="1.1">
 
     <application android:name="NectroidApplication"
                  android:theme="@style/necta"
@@ -23,6 +23,8 @@
         <activity android:name="SettingsActivity" />
 
         <activity android:name="PlaylistActivity" />
+
+        <activity android:name="SiteActivity" />
 
         <activity android:name="StreamsActivity"
             android:label="@string/pick_stream" />

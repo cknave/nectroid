@@ -59,6 +59,8 @@ public class PlaylistActivity extends ListActivity
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.inset_list);
 
+        ((NectroidApplication)getApplication()).updateWindowBackground(getWindow());
+
         // Check for a data URI
         Uri dataUri = getIntent().getData();
         if(dataUri == null) {
@@ -71,9 +73,9 @@ public class PlaylistActivity extends ListActivity
 
         // Check which playlist we're supposed to display
         String playlistName = dataUri.getSchemeSpecificPart();
-        if(playlistName.equals("history")) {
+        if(playlistName.equals("//history")) {
             mDisplaying = WhichPlaylist.HISTORY;
-        } else if(playlistName.equals("queue")) {
+        } else if(playlistName.equals("//queue")) {
             mDisplaying = WhichPlaylist.QUEUE;
         } else {
             throw new RuntimeException(String.format("Unknown playlist \"%s\" requested in %s",

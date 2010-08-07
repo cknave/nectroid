@@ -86,11 +86,15 @@ public class NectroidActivity extends Activity
         setContentView(R.layout.main);
 
         mHandler = new Handler();
+        
+        Window window = getWindow();
+        getNectroidApp().updateWindowBackground(window);
+
         createWidgets();
 
         // Fix banding on gradients
-        getWindow().setFormat(android.graphics.PixelFormat.RGBA_8888);
-        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DITHER);
+        window.setFormat(android.graphics.PixelFormat.RGBA_8888);
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DITHER);
     }
 
 
@@ -99,6 +103,7 @@ public class NectroidActivity extends Activity
     protected void onStart()
     {
         super.onStart();
+        Log.d(TAG, "onStart");
         NectroidApplication app = getNectroidApp();
 
         // Update the throbber to the current state.
@@ -118,16 +123,23 @@ public class NectroidActivity extends Activity
         mOneLinerManager = app.getOneLinerManager();
         mOneLinerManager.addTaskListener(this);
 
+        // Update the GUI title bar.
+        updateTitle();
+
         // Update the GUI with the current song.
         Playlist.EntryAndTimeLeft currentSong = mPlaylistManager.getCurrentSong();
         if(currentSong != null) {
             updatePlaylistUI(currentSong);
+        } else {
+            clearPlaylistUI();
         }
 
         // Update the GUI with the current oneliners.
         OneLiner.List oneLiners = mOneLinerManager.getOneLiners();
         if(oneLiners != null) {
             mOneLinerAdapter.setOneLiners(oneLiners);
+        } else {
+            clearOneLiners();
         }
     }
 
@@ -317,7 +329,7 @@ public class NectroidActivity extends Activity
 
 
     ///
-    /// Playlist event handlers
+    /// Other event handlers
     ///
 
     @Override
@@ -359,7 +371,7 @@ public class NectroidActivity extends Activity
         public void onClick(View widget)
         {
             Activity us = NectroidActivity.this;
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("nectroid:history"));
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("nectroid://history"));
             intent.setClass(us, PlaylistActivity.class);
             startActivity(intent);
             Transition.set(us, R.anim.slide_in_left, R.anim.slide_out_right);
@@ -372,7 +384,7 @@ public class NectroidActivity extends Activity
         public void onClick(View widget)
         {
             Activity us = NectroidActivity.this;
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("nectroid:queue"));
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("nectroid://queue"));
             intent.setClass(us, PlaylistActivity.class);
             startActivity(intent);
             Transition.set(us, R.anim.slide_in_right, R.anim.slide_out_left);
@@ -432,7 +444,7 @@ public class NectroidActivity extends Activity
                 // If we selected a new stream, we can now remember the choice since we verified
                 // that it's playable.
                 if(mStreamChoice != null) {
-                    Prefs.setStreamUrlAndId(mStreamChoice.stream, mStreamChoice.id, this);
+                    getNectroidApp().onUserPickedStream(mStreamChoice.stream, mStreamChoice.id);
                     mStreamChoice = null;
                 }
                 // And continue on to case LOADING...
@@ -461,6 +473,15 @@ public class NectroidActivity extends Activity
     private void updatePlaylistUI()
     {
         updatePlaylistUI(mPlaylistManager.getCurrentSong());
+    }
+
+    /** Clear the playlist views. */
+    private void clearPlaylistUI()
+    {
+        mTimeLeft = -1;
+        mTimeLeftView.setText("");
+        mCurrentlyPlayingView.setText("");
+        mRequestedByView.setText("");
     }
 
 
@@ -528,6 +549,12 @@ public class NectroidActivity extends Activity
     }
 
 
+    /** Clear the OneLiners view. */
+    private void clearOneLiners()
+    {
+        mOneLinerAdapter.setOneLiners(null);
+    }
+
     ///
     /// Utilities
     ///
@@ -572,6 +599,14 @@ public class NectroidActivity extends Activity
     {
         int time = Math.max(0, mTimeLeft);
         mTimeLeftView.setText(String.format("%d:%02d", time / 60, time % 60));
+    }
+
+
+    private void updateTitle()
+    {
+        String siteName = getNectroidApp().getSiteManager().getCurrentSite().getName();
+        String appName = this.getString(R.string.app_name);
+        setTitle(appName + " - " + siteName);
     }
 
 

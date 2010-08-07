@@ -157,6 +157,16 @@ public class PlaylistManager extends AutoRefreshDocManager<Playlist>
     }
 
 
+    /** Reset all data. */
+    public void reset()
+    {
+        cancelUpdate();
+        mTimeBase = null;
+        mPlaylist = null;
+        mLastUpdateTime = 0L;
+    }
+
+
     ///
     /// Getters
     ///

@@ -2,8 +2,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item>
-        <bitmap
-            android:src="@drawable/orange_waffle"
+        <bitmap android:src="@drawable/orange_waffle"
             android:tileMode="repeat" />
     </item>
 

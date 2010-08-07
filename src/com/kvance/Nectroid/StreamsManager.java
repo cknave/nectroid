@@ -21,6 +21,9 @@ import org.xml.sax.SAXException;
 
 import android.content.Context;
 import android.util.Log;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
+import android.database.Cursor;
 
 
 public class StreamsManager extends CachedDocManager<Stream.List>
@@ -51,6 +54,24 @@ public class StreamsManager extends CachedDocManager<Stream.List>
     }
 
 
+    /** Update the streams database with this new info. */
+    @Override
+    public void onParserSuccess(Stream.List result, Context context)
+    {
+        // Update the database with the new streams info.
+        int siteId = Prefs.getSiteId(context);
+        SQLiteDatabase db = new DbOpenHelper(context).getWritableDatabase();
+        try {
+            // Replace the old stream list.
+            replaceStreamsForSite(result, siteId, db);
+            // Update the selected stream to its new ID.
+            updateStreamPickedInDatabase(siteId, db, context);
+        } finally {
+            db.close();
+        }
+    }
+
+
     ///
     /// Getters
     ///
@@ -66,5 +87,68 @@ public class StreamsManager extends CachedDocManager<Stream.List>
     {
         // We can dump the streams.
         mStreams = null;
+    }
+
+    /** Clear all data to before any streams were loaded. */
+    public void reset()
+    {
+        cancelUpdate();
+        mStreams = null;
+    }
+
+
+    ///
+    /// Utility methods
+    ///
+
+    /** Replace the streams for some site in the database with this new list of streams. */
+    private void replaceStreamsForSite(Stream.List streams, int siteId, SQLiteDatabase db)
+    {
+        // Delete the old streams.
+        DbDataHelper data = new DbDataHelper(db);
+        data.deleteStreamsFromSite(siteId);
+
+        // Insert the new ones.
+        for(Stream stream : streams) {
+            data.insertStream(stream, siteId);
+        }
+    }
+
+    /** Update the selected stream after replacing the stream list in the database. */
+    private void updateStreamPickedInDatabase(int siteId, SQLiteDatabase db, Context context)
+    {
+        // Get the remote ID from the prefs.
+        Integer remoteStreamId = Prefs.getStreamId(context);
+        if(remoteStreamId == null) {
+            // No stream picked; nothing to do.
+            return;
+        }
+
+        // Look for that ID in our new list of streams.
+        DbDataHelper data = new DbDataHelper(db);
+        String[] columns = { DbOpenHelper.STREAMS_ID_KEY };
+        Cursor cursor = data.selectStreamRemote(siteId, remoteStreamId, columns);
+        Integer localStreamId = null;
+        try {
+            if(cursor.getCount() == 1) {
+                cursor.moveToFirst();
+                localStreamId = cursor.getInt(0);
+            }
+        } finally {
+            cursor.close();
+        }
+        
+        if(localStreamId != null) {
+            // Update to the new local ID.
+            Log.d(TAG, String.format("Updated stream (remote id=%d) to local id %d for site %d",
+                        remoteStreamId, localStreamId.intValue(), siteId));
+            data.setLocalStreamForSite(siteId, localStreamId);
+        } else {
+            // The stream no longer exists.  Clear the prefs and DB row.
+            Log.w(TAG, String.format("Selected stream (remote id=%d) for site %d no longer exists!",
+                        remoteStreamId, siteId));
+            Prefs.clearStream(context);
+            data.deletePickedStreamForSite(siteId);
+        }
     }
 }

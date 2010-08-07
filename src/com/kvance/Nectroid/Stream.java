@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.sax.Element;
 import android.sax.ElementListener;
 import android.sax.EndTextElementListener;
@@ -29,6 +31,7 @@ import android.sax.RootElement;
 import android.sax.TextElementListener;
 import android.util.Log;
 import android.util.Xml;
+import android.database.Cursor;
 
 
 /** A stream descriptor */
@@ -77,6 +80,59 @@ class Stream
     public static List listFromXml(String xmlData) throws SAXException
     {
         return (new Parser()).parse(xmlData);
+    }
+
+
+    public static List listFromDB(SQLiteDatabase db, int siteId)
+    {
+        List streams = new List();
+        Cursor cursor = new DbDataHelper(db).selectAllStreams(siteId);
+        try {
+            int numStreams = cursor.getCount();
+            if(numStreams > 0) {
+                streams.ensureCapacity(numStreams);
+                cursor.moveToFirst();
+                for(int i = 0; i < numStreams; i++) {
+                    Stream newStream = fromCursor(cursor);
+                    streams.add(newStream);
+                    cursor.moveToNext();
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return streams;
+    }
+
+
+    public static Stream fromCursor(Cursor cursor)
+    {
+        Stream newStream = new Stream();
+        newStream.mId = (int)cursor.getLong(0);
+        String newUrl = cursor.getString(1);
+        newStream.mName = cursor.getString(2);
+        newStream.mCountry = cursor.getString(3);
+        newStream.mBitrate = (int)cursor.getLong(4);
+        int newTypeCode = (int)cursor.getLong(5);
+        newStream.mTypeName = cursor.getString(6);
+
+        // Convert URL string to URL object.
+        try {
+            newStream.mUrl = new URL(newUrl);
+        } catch(MalformedURLException e) {
+            Log.w(TAG, String.format("Malformed stream URL \"%s\"", newUrl));
+        }
+
+        // Convert type code to Type enum.
+        if(newTypeCode > 0 && newTypeCode < Type.values().length) {
+            newStream.mType = Type.values()[newTypeCode];
+        } else { 
+            Log.w(TAG, String.format("Invalid stream type code %d", newTypeCode));
+            newStream.mType = Type.UNKNOWN;
+        }
+
+        return newStream;
     }
 
 

@@ -30,6 +30,7 @@ import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.database.sqlite.SQLiteDatabase;
 
 
 public class StreamsActivity extends ListActivity implements BackgroundTaskListener
@@ -53,6 +54,9 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.inset_list);
+
+        ((NectroidApplication)getApplication()).updateWindowBackground(getWindow());
+
         getListView().setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         // Set the empty text
@@ -71,8 +75,13 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         mStreamsManager.addTaskListener(this);
 
         // Make sure we get a streams list now or in the near future.
-        mStreams = mStreamsManager.getStreams();
-        if(mStreams == null) {
+        SQLiteDatabase db = new DbOpenHelper(this).getReadableDatabase();
+        try {
+            mStreams = Stream.listFromDB(db, Prefs.getSiteId(this));
+        } finally {
+            db.close();
+        }
+        if(mStreams == null || mStreams.size() == 0) {
             mStreamsManager.update(this, true);
         }
 
