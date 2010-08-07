@@ -33,9 +33,9 @@ public class SiteActivity extends Activity
     private TextView mUrlView;
     private TextView mColorView;
 
-    private static final String DEFAULT_NAME = "Example Radio";
-    private static final String DEFAULT_URL = "http://example.com/demovibes/";
-    private static final String DEFAULT_COLOR = "#44cc88";
+    private static final String DEFAULT_NAME = "";
+    private static final String DEFAULT_URL = "";
+    private static final String DEFAULT_COLOR = "";
 
 
     ///
@@ -72,8 +72,14 @@ public class SiteActivity extends Activity
         // Fill text fields with our site values.
         mNameView.setText(mSite.getName());
         mUrlView.setText(mSite.getBaseUrl());
-        String hexColor = String.format("#%06X", mSite.getColor() & 0xFFFFFF);
-        mColorView.setText(hexColor);
+        Integer colorInt = mSite.getColor();
+        String colorHex;
+        if(colorInt == null) {
+            colorHex = "";
+        } else {
+            colorHex = String.format("#%06X", colorInt & 0xFFFFFF);
+        }
+        mColorView.setText(colorHex);
 
         // Link buttons to events.
         Button okButton = (Button)findViewById(R.id.site_ok);

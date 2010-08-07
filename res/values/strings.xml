@@ -38,7 +38,10 @@
     <string name="delete">Delete</string>
     <string name="new_site">New site</string>
     <string name="edit_site">Edit site</string>
+    <string name="site_name">Site Name</string>
     <string name="site">Site</string>
+    <string name="base_url">Base URL</string>
+    <string name="base_url_info">Base URL, e.g. http://example.com/demovibes/</string>
     <string name="url">URL</string>
     <string name="color">Color</string>
     <string name="ok">OK</string>
