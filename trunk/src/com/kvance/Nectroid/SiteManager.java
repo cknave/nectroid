@@ -129,7 +129,6 @@ class SiteManager implements SharedPreferences.OnSharedPreferenceChangeListener
     /** Read the site with this ID from the database. */
     private Site getSiteFromDb(int siteId)
     {
-        Log.d(TAG, String.format("Loading site id %d", siteId));
         SQLiteDatabase db = new DbOpenHelper(mContext).getReadableDatabase();
         Site retval = null;
         try {

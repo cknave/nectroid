@@ -103,7 +103,6 @@ public class NectroidActivity extends Activity
     protected void onStart()
     {
         super.onStart();
-        Log.d(TAG, "onStart");
         NectroidApplication app = getNectroidApp();
 
         // Update the throbber to the current state.

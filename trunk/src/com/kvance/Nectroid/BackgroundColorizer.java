@@ -73,7 +73,6 @@ class BackgroundColorizer
                 shiftHSV(mTempHSV, mTempHSV);
                 int destColor = Color.HSVToColor(mTempHSV);
                 mDest.setPixel(x, y, destColor);
-                Log.d("Nectroid", String.format("(%d, %d): %06X -> %06X", x, y, srcColor, destColor));
             }
         }
 
@@ -141,7 +140,6 @@ class BackgroundColorizer
 
         // Layered gradient:
         Drawable gradient = res.getDrawable(R.drawable.bg_gradient);
-        Log.d("Nectroid", String.format("gradient = %s", gradient));
         Drawable[] layers = {
             mDestDrawable,
             gradient

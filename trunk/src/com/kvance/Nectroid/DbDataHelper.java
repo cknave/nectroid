@@ -135,14 +135,12 @@ class DbDataHelper
     /** Update this site's entry in the database. */
     public void updateSite(Site site)
     {
-        Log.d(TAG, "Updating site " + site.getName());
         ContentValues values = contentValuesForSite(site);
         String where = DbOpenHelper.SITES_ID_KEY + " = " + String.valueOf(site.getId());
         int rowsAffected = mDB.update(DbOpenHelper.SITES_TABLE_NAME, values, where, null);
         if(rowsAffected != 1) {
             throw new RuntimeException("Failed to update site %s" + String.valueOf(site.getId()));
         }
-        Log.d(TAG, String.format("rows affected = %d", rowsAffected));
     }
 
 
@@ -259,7 +257,6 @@ class DbDataHelper
 
         // If there was no record for this site, insert it.
         if(rowsAffected != 1) {
-            Log.d(TAG, "No selection record exists; inserting one.");
             String streamIdString = String.valueOf(streamLocalId);
             mDB.execSQL("INSERT INTO " + DbOpenHelper.SELECTED_STREAM_TABLE_NAME + " (" +
                     DbOpenHelper.SELECTED_STREAM_SITE_KEY + ", " +
