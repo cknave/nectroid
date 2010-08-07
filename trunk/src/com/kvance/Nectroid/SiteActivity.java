@@ -24,6 +24,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.view.View;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 
 
 public class SiteActivity extends Activity
@@ -69,23 +71,17 @@ public class SiteActivity extends Activity
         mUrlView = (TextView)findViewById(R.id.site_base_url);
         mColorView = (TextView)findViewById(R.id.site_color);
 
-        // Fill text fields with our site values.
-        mNameView.setText(mSite.getName());
-        mUrlView.setText(mSite.getBaseUrl());
-        Integer colorInt = mSite.getColor();
-        String colorHex;
-        if(colorInt == null) {
-            colorHex = "";
-        } else {
-            colorHex = String.format("#%06X", colorInt & 0xFFFFFF);
-        }
-        mColorView.setText(colorHex);
-
         // Link buttons to events.
         Button okButton = (Button)findViewById(R.id.site_ok);
         okButton.setOnClickListener(onOkClicked);
         Button cancelButton = (Button)findViewById(R.id.site_cancel);
         cancelButton.setOnClickListener(onCancelClicked);
+
+        // Link fields to events.
+        mColorView.setOnEditorActionListener(onEditorAction);
+
+        // Fill text fields with our site values.
+        fillFieldsWithSite(mSite);
     }
 
 
@@ -95,35 +91,7 @@ public class SiteActivity extends Activity
 
     private OnClickListener onOkClicked = new OnClickListener() {
         public void onClick(View v) {
-            // Copy the results back to the site object.
-            mSite.setName(mNameView.getText().toString());
-            mSite.setBaseUrl(mUrlView.getText().toString());
-            mSite.setColor(mColorView.getText().toString());
-
-            // Save the changes.
-            SQLiteDatabase db = new DbOpenHelper(SiteActivity.this).getWritableDatabase();
-            int siteId;
-            try {
-                DbDataHelper data = new DbDataHelper(db);
-                if(getIntent().getAction().equals(Intent.ACTION_INSERT)) {
-                    // Create a new site.
-                    siteId = data.insertSite(mSite);
-                } else {
-                    // Update an existing site.
-                    data.updateSite(mSite);
-                    siteId = mSite.getId();
-                }
-            } finally {
-                db.close();
-            }
-
-            // Finish the activity, returning the new site id.
-            Intent result = new Intent();
-            String siteUriString = "nectroid://sites/" + String.valueOf(siteId);
-            Uri siteUri = Uri.parse(siteUriString);
-            result.setData(siteUri);
-            setResult(Activity.RESULT_OK, result);
-            finish();
+            saveAndFinish();
         }
     };
 
@@ -132,6 +100,21 @@ public class SiteActivity extends Activity
         public void onClick(View v) {
             setResult(Activity.RESULT_CANCELED);
             finish();
+        }
+    };
+
+
+    ///
+    /// Text field events
+    ///
+
+    private TextView.OnEditorActionListener onEditorAction = new TextView.OnEditorActionListener() {
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if(actionId == EditorInfo.IME_ACTION_DONE) {
+                saveAndFinish();
+                return true;
+            }
+            return false;
         }
     };
 
@@ -165,6 +148,7 @@ public class SiteActivity extends Activity
     }
 
 
+    /** Return the Site object specified in this nectroid://sites/ URI. */
     private Site getSiteForUri(Uri siteUri)
     {
         int siteId = parseSiteUri(siteUri);
@@ -179,5 +163,63 @@ public class SiteActivity extends Activity
             db.close();
         }
         return site;
+    }
+
+
+    /* Fill in this activity's text fields with the values from this Site object. */
+    private void fillFieldsWithSite(Site site)
+    {
+        mNameView.setText(site.getName());
+        mUrlView.setText(site.getBaseUrl());
+        Integer colorInt = site.getColor();
+        String colorHex;
+        if(colorInt == null) {
+            colorHex = "";
+        } else {
+            colorHex = String.format("#%06X", colorInt & 0xFFFFFF);
+        }
+        mColorView.setText(colorHex);
+    }
+
+
+    /** Fill in a site object with data from this activity. */
+    private void fillSiteWithFields(Site site)
+    {
+        site.setName(mNameView.getText().toString());
+        site.setBaseUrl(mUrlView.getText().toString());
+        site.setColor(mColorView.getText().toString());
+    }
+
+
+    /** Save the changes and finish the activity. */
+    private void saveAndFinish()
+    {
+        // Copy the results back to the site object.
+        fillSiteWithFields(mSite);
+
+        // Save the changes.
+        SQLiteDatabase db = new DbOpenHelper(SiteActivity.this).getWritableDatabase();
+        int siteId;
+        try {
+            DbDataHelper data = new DbDataHelper(db);
+            if(getIntent().getAction().equals(Intent.ACTION_INSERT)) {
+                // Create a new site.
+                siteId = data.insertSite(mSite);
+            } else {
+                // Update an existing site.
+                data.updateSite(mSite);
+                siteId = mSite.getId();
+            }
+        } finally {
+            db.close();
+        }
+
+        // Finish the activity, returning the new site id.
+        Intent result = new Intent();
+        String siteUriString = "nectroid://sites/" + String.valueOf(siteId);
+        Uri siteUri = Uri.parse(siteUriString);
+        result.setData(siteUri);
+        setResult(Activity.RESULT_OK, result);
+        finish();
     }
 }
