@@ -562,13 +562,14 @@ public class NectroidActivity extends Activity
     {
         // Build the formatted string
         StringBuilder html = new StringBuilder();
-        String songLink = entry.songLink(this);
+        String baseUrl = getNectroidApp().getSiteManager().getCurrentSite().getBaseUrl();
+        String songLink = baseUrl + entry.songLink(this);
         html.append(String.format("<b><a href=\"%s\">%s</a></b> by ", songLink, entry.getTitle()));
         java.util.List<Playlist.IdString> artists = entry.getArtists();
         int numArtists = artists.size();
         for(int i = 0; i < numArtists; i++) {
             Playlist.IdString artist = artists.get(i);
-            String link = entry.artistLink(artist, this);
+            String link = baseUrl + entry.artistLink(artist, this);
             html.append(String.format("<b><a href=\"%s\">%s</a></b>", link, artist.getString()));
             if(i < (numArtists - 1)) {
                 html.append(", ");
@@ -584,7 +585,8 @@ public class NectroidActivity extends Activity
     private void updateRequestedBy(Playlist.Entry entry)
     {
         // Build the formatted string
-        String requesterLink = entry.requesterLink(this);
+        String baseUrl = getNectroidApp().getSiteManager().getCurrentSite().getBaseUrl();
+        String requesterLink = baseUrl + entry.requesterLink(this);
         String html = String.format("<a href=\"%s\">%s</a>", requesterLink,
                 entry.getRequester().getString());
 
