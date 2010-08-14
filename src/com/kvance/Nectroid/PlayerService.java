@@ -164,7 +164,15 @@ public class PlayerService extends ForegroundService
 
     protected void handleCommand(Intent intent)
     {
-        if(!intent.getAction().equals(ACTION_PLAY)) {
+        if(intent == null) {
+            Log.w(TAG, "Ignoring null intent");
+            stopSelf();
+
+        } else if(intent.getAction() == null) {
+            Log.w(TAG, "Ignoring intent with null action");
+            stopSelf();
+
+        } else if(!intent.getAction().equals(ACTION_PLAY)) {
             Log.w(TAG, String.format("Ignoring invalid action %s", intent.getAction()));
             stopSelf();
 
