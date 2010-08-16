@@ -190,6 +190,7 @@ public class PlayerService extends ForegroundService
     {
         boolean error = false;
         mMP = new MediaPlayer();
+        mMP.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
         try {
             mMP.setDataSource(stream.toString());
         } catch(IOException e) {
