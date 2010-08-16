@@ -147,9 +147,14 @@ public class PlaylistActivity extends ListActivity
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id)
     {
+        // Find the base URL for the current site.
+        NectroidApplication app = (NectroidApplication)getApplication();
+        String baseUrl = app.getSiteManager().getCurrentSite().getBaseUrl();
+
         // Open the song link.
         Playlist.Entry song = (Playlist.Entry)mListAdapter.getItem(position);
-        Uri link = Uri.parse(song.songLink(this));
+        String songLink = baseUrl + song.songLink(this);
+        Uri link = Uri.parse(songLink);
         Intent intent = new Intent(Intent.ACTION_VIEW, link);
         startActivity(intent);
     }
