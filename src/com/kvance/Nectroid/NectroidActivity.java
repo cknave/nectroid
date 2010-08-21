@@ -624,28 +624,26 @@ public class NectroidActivity extends Activity
         int bitrate = 192;
 
         // Get the list of streams.
-        List<Stream> streams = getNectroidApp().getStreamsManager().getStreams();
-        if(streams == null) {
-            SQLiteDatabase db = new DbOpenHelper(this).getReadableDatabase();
-            try {
-                streams = Stream.listFromDB(db, Prefs.getSiteId(this));
-            } finally {
-                db.close();
-            }
+        List<Stream> streams = null;
+        SQLiteDatabase db = new DbOpenHelper(this).getReadableDatabase();
+        try {
+            streams = Stream.listFromDB(db, Prefs.getSiteId(this));
+        } finally {
+            db.close();
         }
 
         if(streams == null) {
             Log.w(TAG, "Couldn't open streams database; using unknown bitrate");
         } else {
+            // Search the stream list for that URL.
             boolean found = false;
             for(Stream stream : streams) {
-                if(stream.getUrl().equals(urlString)) {
+                if(stream.getUrl().toString().equals(urlString)) {
                     bitrate = stream.getBitrate();
                     found = true;
                     break;
                 }
             }
-
             if(!found) {
                 Log.w(TAG, String.format("Couldn't find bitrate for stream \"%s\"", urlString));
             }

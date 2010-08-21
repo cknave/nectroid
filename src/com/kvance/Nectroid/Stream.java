@@ -287,6 +287,9 @@ class Stream
             Element country = stream.getChild("country");
             country.setEndTextElementListener(new CountryListener());
 
+            Element bitrate = stream.getChild("bitrate");
+            bitrate.setEndTextElementListener(new BitrateListener());
+
             Element type = stream.getChild("type");
             type.setTextElementListener(new TypeListener());
 
