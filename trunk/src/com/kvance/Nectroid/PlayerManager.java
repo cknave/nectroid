@@ -14,7 +14,9 @@
 // along with Nectroid.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.kvance.Nectroid;
+
 import java.util.HashSet;
+
 
 class PlayerManager
 {

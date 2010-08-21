@@ -21,10 +21,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.EnumSet;
 
 import android.content.Context;
 import android.util.Log;
-import java.util.EnumSet;
 
 
 class Cache

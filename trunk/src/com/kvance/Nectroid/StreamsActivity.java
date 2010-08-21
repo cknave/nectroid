@@ -20,6 +20,7 @@ import java.util.List;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -30,7 +31,6 @@ import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.database.sqlite.SQLiteDatabase;
 
 
 public class StreamsActivity extends ListActivity implements BackgroundTaskListener

@@ -16,6 +16,9 @@
 
 package com.kvance.Nectroid;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -25,12 +28,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View;
 import android.widget.Button;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 
 /**

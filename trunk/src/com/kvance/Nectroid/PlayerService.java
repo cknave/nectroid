@@ -16,6 +16,8 @@
 package com.kvance.Nectroid;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -26,8 +28,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
-import java.net.URL;
-import java.net.MalformedURLException;
 
 
 public class PlayerService extends ForegroundService
