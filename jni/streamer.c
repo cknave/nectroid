@@ -435,10 +435,23 @@ static int write_pcm_output(JNIEnv *env, jobject streamer, struct mad_pcm *pcm)
     struct buffer_and_object bno;
     int error = 0;
     int result = -1;
+    int buffer_size = 0;
+    int bytes_to_write = 0;
     bno.buffer = NULL;
 
     /* Get a pointer to the Java-side PCM buffer and its object reference. */
     error = get_pcm_buffer(env, streamer, &bno);
+
+    /* Make sure the samples will fit in the PCM buffer. */
+    if(!error) {
+        bytes_to_write = pcm->length * 2 * pcm->channels; 
+        buffer_size = (*env)->GetArrayLength(env, bno.object);
+        if(bytes_to_write > buffer_size) {
+            LOGE("PCM buffer is too small (%d) to write %d bytes into", buffer_size,
+                    bytes_to_write);
+            error = 1;
+        }
+    }
 
     /* Output scaled PCM data to the pointer. */
     if(!error) {
@@ -448,7 +461,6 @@ static int write_pcm_output(JNIEnv *env, jobject streamer, struct mad_pcm *pcm)
         mad_fixed_t *left_ch = pcm->samples[0];
         mad_fixed_t *right_ch = pcm->samples[1];
 
-        // TODO: check array length
         while(nsamples--) {
             *(outp++) = scale(*left_ch++);
             if(nchannels == 2) {
@@ -471,7 +483,7 @@ static int write_pcm_output(JNIEnv *env, jobject streamer, struct mad_pcm *pcm)
     /* On success, return the number of bytes written. */
     if(!error) {
         /* Number of samples * 2 bytes (16-bit) * number of channels */
-        result = pcm->length * 2 * pcm->channels;
+        result = bytes_to_write;
     }
 
     return result;
