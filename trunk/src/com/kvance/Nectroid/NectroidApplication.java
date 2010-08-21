@@ -72,12 +72,15 @@ public class NectroidApplication extends Application
             mScrobbler.start();
         }
 
-        SharedPreferences p = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
-        p.registerOnSharedPreferenceChangeListener(this);
+        SharedPreferences prefs = getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.registerOnSharedPreferenceChangeListener(this);
 
         // Set the background to the color of the current site.
         mBackgroundColorizer = new BackgroundColorizer(appContext);
         applySiteColor(mSiteManager.getCurrentSite());
+
+        // Change the SW decoder preference based on OS version (if unset).
+        updateSWDecoderPreference(prefs);
     }
 
 
@@ -239,6 +242,7 @@ public class NectroidApplication extends Application
         }
     }
 
+
     private Stream getSelectedStreamForSite(Site site)
     {
         Stream stream = null;
@@ -264,5 +268,16 @@ public class NectroidApplication extends Application
             db.close();
         }
         return stream;
+    }
+
+
+    private void updateSWDecoderPreference(SharedPreferences prefs)
+    {
+        if(!prefs.contains(Prefs.USE_SW_DECODER_KEY)) {
+            if(android.os.Build.VERSION.SDK.equals("3")) {
+                Log.i(TAG, "Cupcake detected; enabling SW MP3 decoder");
+                Prefs.setUseSWDecoder(this, true);
+            }
+        }
     }
 }

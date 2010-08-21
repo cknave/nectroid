@@ -17,4 +17,9 @@
         android:summary="@string/requires_lastfm"
         android:key="use_scrobbler"
         android:defaultValue="true"/>
+
+    <CheckBoxPreference android:title="@string/use_sw_decoder"
+        android:summary="@string/sw_decoder_summary"
+        android:key="use_sw_decoder"
+        android:defaultValue="false"/>
 </PreferenceScreen>

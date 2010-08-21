@@ -43,6 +43,7 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
     private static final String TAG = "Nectroid";
 
     public static final String EXTRA_ID = "com.kvance.Nectroid.Stream.id";
+    public static final String EXTRA_BITRATE = "com.kvance.Nectroid.Stream.bitrate";
 
 
     ///
@@ -107,6 +108,7 @@ public class StreamsActivity extends ListActivity implements BackgroundTaskListe
         Intent result = new Intent();
         result.setData(streamUri);
         result.putExtra(EXTRA_ID, (int)id);
+        result.putExtra(EXTRA_BITRATE, stream.getBitrate());
         setResult(Activity.RESULT_OK, result);
         finish();
     }
