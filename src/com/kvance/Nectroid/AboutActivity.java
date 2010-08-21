@@ -16,11 +16,11 @@
 package com.kvance.Nectroid;
 
 import android.app.Activity;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.webkit.WebView;
 import android.widget.TextView;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 
 
 public class AboutActivity extends Activity

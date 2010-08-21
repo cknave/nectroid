@@ -23,6 +23,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.sax.Element;
 import android.sax.ElementListener;
@@ -31,7 +32,6 @@ import android.sax.RootElement;
 import android.sax.TextElementListener;
 import android.util.Log;
 import android.util.Xml;
-import android.database.Cursor;
 
 
 /** A stream descriptor */

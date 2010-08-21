@@ -20,10 +20,10 @@ import java.util.List;
 import org.xml.sax.SAXException;
 
 import android.content.Context;
-import android.util.Log;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
-import android.database.Cursor;
+import android.util.Log;
 
 
 public class StreamsManager extends CachedDocManager<Stream.List>

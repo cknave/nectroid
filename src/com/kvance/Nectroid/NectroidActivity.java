@@ -17,10 +17,12 @@ package com.kvance.Nectroid;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,8 +41,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.database.sqlite.SQLiteDatabase;
-import java.util.List;
 
 
 public class NectroidActivity extends Activity

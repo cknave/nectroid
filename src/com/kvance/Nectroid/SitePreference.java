@@ -24,11 +24,11 @@ import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.BaseAdapter;
 import android.widget.CursorAdapter;
 import android.widget.ListAdapter;
-import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 
 public class SitePreference extends DialogPreference
