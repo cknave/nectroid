@@ -40,6 +40,7 @@ class Prefs
     public static final String USE_SCROBBLER_KEY = "use_scrobbler";
     public static final String SITE_ID_KEY = "site_id";
     public static final String CACHED_SITE_ID_KEY = "cached_site_id";
+    public static final String USE_SW_DECODER_KEY = "use_sw_decoder";
 
     // Timestamp formatter
     private static final SimpleDateFormat timestampFormat = new SimpleDateFormat(
@@ -48,6 +49,7 @@ class Prefs
     // Defaults
     public static final int DEFAULT_ONELINER_REFRESH_PERIOD = 60;
     public static final boolean DEFAULT_USE_SCROBBLER = true;
+    public static final boolean DEFAULT_USE_SW_DECODER = false;
     public static final int DEFAULT_SITE_ID = 0; // Nectarine site id
 
     private static final String TAG = "Nectroid";
@@ -90,6 +92,11 @@ class Prefs
     public static int getCachedSiteId(Context context)
     {
         return sp(context).getInt(CACHED_SITE_ID_KEY, DEFAULT_SITE_ID);
+    }
+
+    public static boolean getUseSWDecoder(Context context)
+    {
+        return sp(context).getBoolean(USE_SW_DECODER_KEY, DEFAULT_USE_SW_DECODER);
     }
 
     public static URL getStreamUrl(Context context)
@@ -149,6 +156,11 @@ class Prefs
     public static void setCachedSiteId(Context context, int id)
     {
         esp(context).putInt(CACHED_SITE_ID_KEY, id).commit();
+    }
+
+    public static void setUseSWDecoder(Context context, boolean useSWDecoder)
+    {
+        esp(context).putBoolean(USE_SW_DECODER_KEY, useSWDecoder).commit();
     }
 
     public static void setStream(URL url, int id, Context context)

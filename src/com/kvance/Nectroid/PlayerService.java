@@ -26,11 +26,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 
 public class PlayerService extends ForegroundService
     implements PlaylistManager.SongListener, MediaPlayer.OnErrorListener,
-               MediaPlayer.OnPreparedListener
+               MediaPlayer.OnPreparedListener, MP3Streamer.BufferingListener,
+               MP3Streamer.ErrorListener
 {
     public enum State {
         STOPPED,
@@ -50,7 +53,11 @@ public class PlayerService extends ForegroundService
     private PlaylistManager mPlaylistManager;
     private PlayerManager mPlayerManager;
 
+    /** MediaPlayer used for Android 1.6+ */
     private MediaPlayer mMP;
+
+    /** MP3Streamer used for Android 1.5 */
+    private MP3Streamer mMP3Streamer;
 
 
     ///
@@ -92,6 +99,7 @@ public class PlayerService extends ForegroundService
     @Override
     public void onDestroy()
     {
+        Log.d(TAG, "destroy PlayerService");
         // Tell the player manager we're going away.
         mPlayerManager.setPlayer(null);
 
@@ -111,7 +119,16 @@ public class PlayerService extends ForegroundService
             }.execute();
         }
 
+        // Clean up the other player.
+        if(mMP3Streamer != null) {
+            mMP3Streamer.cancel();
+        }
+
+        // Continue with parent's destruction.
         super.onDestroy();
+
+        // Make sure our notification is gone.
+        mNM.cancel(PLAYING_ID);
     }
 
 
@@ -149,6 +166,28 @@ public class PlayerService extends ForegroundService
 
 
     ///
+    /// MP3Streamer event handlers
+    ///
+
+    @Override
+    public void onMP3Buffering(boolean isBuffering)
+    {
+        if(isBuffering) {
+            mPlayerManager.setPlayerState(State.LOADING);
+        } else {
+            mPlayerManager.setPlayerState(State.PLAYING);
+        }
+    }
+
+    @Override
+    public void onMP3Error()
+    {
+        // Call through to MediaPlayer's onError with bogus parameters.
+        onError(null, 0, 0);
+    }
+
+
+    ///
     /// ForegroundService methods
     ///
 
@@ -177,7 +216,9 @@ public class PlayerService extends ForegroundService
             stopSelf();
 
         } else {
-            startPlaying(intent.getData());
+            // Valid intent.  Extract the bitrate and start playing.
+            int bitrate = intent.getIntExtra(StreamsActivity.EXTRA_BITRATE, 192);
+            startPlaying(intent.getData(), bitrate);
         }
     }
 
@@ -186,24 +227,45 @@ public class PlayerService extends ForegroundService
     /// Utility methods
     ///
 
-    private void startPlaying(Uri stream)
+    private void startPlaying(Uri stream, int bitrate)
     {
         boolean error = false;
-        mMP = new MediaPlayer();
-        mMP.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
-        try {
-            mMP.setDataSource(stream.toString());
-        } catch(IOException e) {
-            error = true;
+//        if(android.os.Build.VERSION.SDK.equals("3")) {
+        if(Prefs.getUseSWDecoder(this)) {
+            Log.i(TAG, "Using software MP3 decoding instead of MediaPlayer.");
+            URL streamUrl = null;
+            try {
+                streamUrl = new URL(stream.toString());
+            } catch(MalformedURLException e) {
+                error = false;
+            }
+            if(!error) {
+                mMP3Streamer = new MP3Streamer(streamUrl, bitrate);
+                mMP3Streamer.setErrorListener(this);
+                mMP3Streamer.setBufferingListener(this);
+                mMP3Streamer.start();
+            }
+
+        } else {
+            // Use the normal MediaPlayer for streaming.
+            mMP = new MediaPlayer();
+            mMP.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
+            try {
+                mMP.setDataSource(stream.toString());
+            } catch(IOException e) {
+                error = true;
+            }
+
+            if(!error) {
+                mMP.setOnPreparedListener(this);
+                mMP.setOnErrorListener(this);
+                mMP.prepareAsync();
+                startForegroundCompat(PLAYING_ID, mNotification);
+                mPlayerManager.setPlayerState(State.LOADING);
+            }
         }
 
-        if(!error) {
-            mMP.setOnPreparedListener(this);
-            mMP.setOnErrorListener(this);
-            mMP.prepareAsync();
-            startForegroundCompat(PLAYING_ID, mNotification);
-            mPlayerManager.setPlayerState(State.LOADING);
-        } else {
+        if(error) {
             // Call our own error handler with bogus parameters.
             onError(null, 0, 0);
         }

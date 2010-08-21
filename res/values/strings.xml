@@ -29,6 +29,8 @@
     <string name="select_a_site">Select a site</string>
     <string name="use_scrobbler">Use Audioscrobbler</string>
     <string name="requires_lastfm">Requires the Last.fm app</string>
+    <string name="use_sw_decoder">Software MP3 player</string>
+    <string name="sw_decoder_summary">Only enable if normal player is broken</string>
     <string name="oneliner_refresh_time">OneLiner refresh time</string>
     <string name="every_30_seconds">Every 30 seconds</string>
     <string name="every_1_minute">Every 1 minute</string>

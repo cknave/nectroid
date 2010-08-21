@@ -39,6 +39,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.database.sqlite.SQLiteDatabase;
+import java.util.List;
 
 
 public class NectroidActivity extends Activity
@@ -235,7 +237,8 @@ public class NectroidActivity extends Activity
             case PICK_STREAM_REQUEST:
                 if(resultCode == Activity.RESULT_OK) {
                     int id = data.getIntExtra(StreamsActivity.EXTRA_ID, -1);
-                    onStreamPicked(data.getData(), id);
+                    int bitrate = data.getIntExtra(StreamsActivity.EXTRA_BITRATE, 192);
+                    onStreamPicked(data.getData(), id, bitrate);
                 }
                 break;
 
@@ -353,7 +356,9 @@ public class NectroidActivity extends Activity
                 // Check if we have a URL to play.
                 URL streamUrl = Prefs.getStreamUrl(NectroidActivity.this);
                 if(streamUrl != null) {
-                    playStream(streamUrl);
+                    int bitrate = getBitrateForStreamUrl(streamUrl);
+                    Log.d(TAG, String.format("Play stream \"%s\" (%d kbps)", streamUrl, bitrate));
+                    playStream(streamUrl, bitrate);
                 } else {
                     // No stream picked yet.  Ask the user what they want.
                     Intent intent = new Intent(Intent.ACTION_PICK);
@@ -408,7 +413,7 @@ public class NectroidActivity extends Activity
     };
 
     /** The user selected a stream to play. */
-    private void onStreamPicked(Uri streamUri, int id)
+    private void onStreamPicked(Uri streamUri, int id, int bitrate)
     {
         // Activities return URIs, but we need a URL.
         URL streamUrl = null;
@@ -423,7 +428,7 @@ public class NectroidActivity extends Activity
             mStreamChoice = new StreamChoice();
             mStreamChoice.stream = streamUrl;
             mStreamChoice.id = id;
-            playStream(streamUrl);
+            playStream(streamUrl, bitrate);
         }
     }
 
@@ -532,11 +537,12 @@ public class NectroidActivity extends Activity
 
 
     /** Start the player service. */
-    private void playStream(URL url)
+    private void playStream(URL url, int bitrate)
     {
         Intent intent = new Intent(this, PlayerService.class);
         intent.setAction(PlayerService.ACTION_PLAY);
         intent.setData(Uri.parse(url.toString()));
+        intent.putExtra(StreamsActivity.EXTRA_BITRATE, bitrate);
         startService(intent);
     }
 
@@ -544,7 +550,8 @@ public class NectroidActivity extends Activity
     private void stopStream()
     {
         Intent intent = new Intent(this, PlayerService.class);
-        stopService(intent);
+        boolean stopped = stopService(intent);
+        Log.d(TAG, "stopService() returned " + String.valueOf(stopped));
     }
 
 
@@ -610,6 +617,43 @@ public class NectroidActivity extends Activity
         setTitle(appName + " - " + siteName);
     }
 
+
+    private int getBitrateForStreamUrl(URL streamUrl)
+    {
+        String urlString = streamUrl.toString();
+        int bitrate = 192;
+
+        // Get the list of streams.
+        List<Stream> streams = getNectroidApp().getStreamsManager().getStreams();
+        if(streams == null) {
+            SQLiteDatabase db = new DbOpenHelper(this).getReadableDatabase();
+            try {
+                streams = Stream.listFromDB(db, Prefs.getSiteId(this));
+            } finally {
+                db.close();
+            }
+        }
+
+        if(streams == null) {
+            Log.w(TAG, "Couldn't open streams database; using unknown bitrate");
+        } else {
+            boolean found = false;
+            for(Stream stream : streams) {
+                if(stream.getUrl().equals(urlString)) {
+                    bitrate = stream.getBitrate();
+                    found = true;
+                    break;
+                }
+            }
+
+            if(!found) {
+                Log.w(TAG, String.format("Couldn't find bitrate for stream \"%s\"", urlString));
+            }
+        }
+
+        return bitrate;
+    }
+        
 
     private NectroidApplication getNectroidApp()
     {
