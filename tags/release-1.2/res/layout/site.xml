@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout android:orientation="vertical"
+        android:layout_gravity="center"
+        android:background="@drawable/whitebox"
+        android:layout_margin="6dip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <ScrollView android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Site name -->
+                <EditText android:id="@+id/site_name"
+                    android:hint="@string/site_name"
+                    android:inputType="textCapWords"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"/>
+
+
+                <!-- Base URL -->
+                <TextView android:text="@string/base_url_info"
+                    android:layout_marginTop="4dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText android:id="@+id/site_base_url"
+                    android:hint="@string/base_url"
+                    android:inputType="textUri"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"/>
+
+                <!-- Color -->
+                <TextView android:text="@string/color_info"
+                    android:layout_marginTop="4dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <EditText android:id="@+id/site_color"
+                    android:hint="@string/color"
+                    android:imeOptions="actionDone"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dip"
+        android:paddingLeft="4dip"
+        android:paddingRight="4dip"
+        android:paddingBottom="1dip"
+        android:gravity="bottom"
+        android:background="@android:drawable/bottom_bar">
+
+        <Button android:id="@+id/site_ok"
+            android:text="@string/ok"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"/>
+
+        <Button android:id="@+id/site_cancel"
+            android:text="@string/cancel"
+            android:layout_width="0dip"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"/>
+    </LinearLayout>
+</LinearLayout>
