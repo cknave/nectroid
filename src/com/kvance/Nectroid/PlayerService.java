@@ -240,7 +240,7 @@ public class PlayerService extends ForegroundService
                 error = false;
             }
             if(!error) {
-                mMP3Streamer = new MP3Streamer(streamUrl, bitrate);
+                mMP3Streamer = new MP3Streamer(this, streamUrl, bitrate);
                 mMP3Streamer.setErrorListener(this);
                 mMP3Streamer.setBufferingListener(this);
                 mMP3Streamer.start();

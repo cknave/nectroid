@@ -23,9 +23,18 @@
 #include "logmacros.h"
 #include "mad.h"
 #include "read.h"
+#include "ringbuffer.h"
+#include "ringbuffer_jni.h"
+
 
 /* Maximum java local references per loop */
 #define N_REFS 16
+
+/* How many bytes of MP3 to pass to libmad at a time. */
+#define MAX_MP3_CHUNK 3072
+
+/* min(x,y) macro */
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
 
 /*
@@ -37,10 +46,13 @@ static enum mad_flow on_mad_output(void *data, struct mad_header const *header,
         struct mad_pcm *pcm);
 static enum mad_flow on_mad_error(void *data, struct mad_stream *stream, struct mad_frame *frame);
 
+static int get_pcm_buffer_size(JNIEnv *env, jobject streamer);
 static int update_audio_format(JNIEnv *env, jobject streamer, int samplerate, int channels);
 static int write_pcm_output(JNIEnv *env, jobject streamer, struct mad_pcm *pcm);
-static int update_buffering_state(JNIEnv *env, jobject streamer, jboolean is_buffering);
 static int start_playing(JNIEnv *env, jobject streamer);
+
+static int acquire_mp3_buffer(JNIEnv *env, jobject obj);
+static int release_mp3_buffer(JNIEnv *env, jobject obj);
 
 
 /*
@@ -49,15 +61,11 @@ static int start_playing(JNIEnv *env, jobject streamer);
 
 /* Local decoder state */
 struct decoder_state {
-    /* MP3 buffer */
-    unsigned char *buffer;
-    int buffer_size;
+    /* MP3 ringbuffer */
+    struct ringbuffer *buffer;
 
-    /* Size of the PCM buffer (***NOT*** the MP3 buffer) in bytes */
-    int pcm_buffer_size;
-
-    /* Source file descriptor */
-    int source_fd;
+    /* RingBuffer Java object */
+    jobject buffer_obj;
 
     /* Format of the last PCM chunk decoded */
     int last_samplerate;
@@ -87,24 +95,19 @@ struct buffer_and_object {
  */
 
 JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_runStreamingLoop
-    (JNIEnv *env, jobject obj, jint sock, jint mp3_bufsize, jint pcm_bufsize)
+    (JNIEnv *env, jobject obj, jobject ringbuffer_obj)
 {
     struct mad_decoder decoder;
     struct decoder_state state;
     int rc;
     int error = 0;
 
-    /* Allocate the mp3 buffer, and initialize our local state. */
-    state.buffer = malloc(mp3_bufsize);
+    /* Initialize decoder state. */
+    state.buffer = get_local_ringbuffer(env, ringbuffer_obj);
     if(state.buffer == NULL) {
         error = 1;
-    }
-
-    /* Finish initializing state. */
-    if(!error) {
-        state.buffer_size = mp3_bufsize;
-        state.pcm_buffer_size = pcm_bufsize;
-        state.source_fd = sock;
+    } else {
+        state.buffer_obj = ringbuffer_obj;
         state.last_samplerate = 0;
         state.last_channels = 0;
         state.playing_state = 0;
@@ -114,41 +117,22 @@ JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_runStreamingLoop
                 on_mad_output, on_mad_error, NULL /* message */);
     }
 
-    /* Notify that we're going to fill the buffer. */
-    if(!error) {
-        error = update_buffering_state(env, obj, JNI_TRUE);
-    }
-
-    /* Completely fill the MP3 buffer. */
-    if(!error) {
-        LOGI("Filling buffer");
-        error = read_fully(sock, state.buffer, mp3_bufsize, &g_abort);
-    }
-
-    /* Notify that we're no longer buffering. */
-    if(!error) {
-        error = update_buffering_state(env, obj, JNI_FALSE);
-    }
-
     /* Start the decoder loop. */
     if(!error) {
-        LOGI("Starting decoder loop");
         rc = mad_decoder_run(&decoder, MAD_DECODER_MODE_SYNC);
         if(rc != 0) {
             LOGE("Decoder failed");
             error = 1;
         }
-        LOGI("Finished decoder loop");
     }
 
     /* Clean up. */
     if(state.buffer != NULL) {
-        free(state.buffer);
         mad_decoder_finish(&decoder);
     }
 
-    /* Return success boolean. */
-    return error ? JNI_FALSE : JNI_TRUE;
+    /* Return error boolean. */
+    return error ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -163,7 +147,6 @@ JNIEXPORT void JNICALL Java_com_kvance_Nectroid_MP3Streamer_setAbortFlag
 }
 
 
-
 /*
  * libmad event handlers
  */
@@ -171,33 +154,65 @@ JNIEXPORT void JNICALL Java_com_kvance_Nectroid_MP3Streamer_setAbortFlag
 static enum mad_flow on_mad_input(void *data, struct mad_stream *stream)
 {
     struct decoder_state *dsdata = data;
-    unsigned char *frame_ptr = NULL;
-    int offset = 0;
-    int length = 0;
-    int new_bytes = 0;
+    struct ringbuffer *rbuf = dsdata->buffer;
+    jobject bufobj = dsdata->buffer_obj;
+    JNIEnv *env = dsdata->env;
     int error = 0;
+    int acquired = 0;
 
-    /* Copy the last frame to the beginning of the buffer. */
+    /* Acquire the MP3 buffer. */
+    error = acquire_mp3_buffer(env, bufobj);
+    if(!error) {
+        acquired = 1;
+    }
+
+    /* Advance the read pointer to the next frame (changed during on_mad_output). */
     if(stream->next_frame != NULL) {
-        offset = stream->bufend - stream->next_frame;
-        memmove(dsdata->buffer, stream->next_frame, offset);
+        if((stream->next_frame > rbuf->read) && (stream->next_frame < rbuf->end)) {
+            rbuf->read = (unsigned char *)stream->next_frame;
+        } else {
+            /* If the next frame has wandered behind the read pointer, we probably lost sync.
+             * Realign the buffer and try again. */
+            ringbuffer_realign(rbuf);
+        }
     }
 
-    /* Refill the buffer. */
-    new_bytes = read(dsdata->source_fd, dsdata->buffer + offset, dsdata->buffer_size - offset);
-    if(new_bytes < 0) {
-        LOGE("Error reading MP3: %s", strerror(errno));
-        error = 1;
-    } else if(new_bytes == 0) {
-        LOGE("EOF reading MP3");
-        error = 1;
-    } else {
-        length = offset + new_bytes;
+    /* Wait for data to become available. */
+    /* TODO: completely refill the buffer when starved like this. */
+    if(!error && ringbuffer_empty(rbuf)) {
+        LOGI("Buffer is empty; waiting for data");
+        do {
+            error = release_mp3_buffer(env, bufobj);
+            if(!error) {
+                acquired = 0;
+                usleep(300);
+                error = acquire_mp3_buffer(env, bufobj);
+                if(!error) {
+                    acquired = 1;
+                }
+            }
+            if(g_abort) {
+                LOGI("Aborted while waiting for data");
+                error = 1;
+            }
+        } while(!error && ringbuffer_empty(rbuf));
     }
-                
+
+    /* Make sure we can read an entire chunk. */
+    if(!error) {
+        error = ringbuffer_require_contiguous_read(rbuf, MAX_MP3_CHUNK + 1);
+    }
+
     /* Stream the data. */
     if(!error) {
-        mad_stream_buffer(stream, dsdata->buffer, length);
+        int available_size = ringbuffer_available_contiguous_read(rbuf);
+        int length = MIN(MAX_MP3_CHUNK, available_size);
+        mad_stream_buffer(stream, rbuf->read, length);
+    }
+
+    /* Release the MP3 buffer. */
+    if(acquired) {
+        error = release_mp3_buffer(env, bufobj);
     }
 
     return error ? MAD_FLOW_STOP : MAD_FLOW_CONTINUE;
@@ -244,16 +259,20 @@ static enum mad_flow on_mad_output(void *data, struct mad_header const *header,
         }
     }
 
-    /* If the track isn't playing yet, start it if there's enough data. */
+    /* If the track isn't playing yet, start it when there's enough data. */
     if(!error) {
         if(dsdata->playing_state >= 0) {
-            dsdata->playing_state += pcm_bytes_written;
-            if(dsdata->playing_state >= (dsdata->pcm_buffer_size * 85/100)) {
-                LOGI("Filled PCM buffer to %d (threshold=%d, size=%d)", dsdata->playing_state, (dsdata->pcm_buffer_size * 85/100), dsdata->pcm_buffer_size);
-                /* The buffer is at least 3/4 filled.  Start playing. */
-                error = start_playing(env, dsdata->streamer);
-                if(!error) {
-                    dsdata->playing_state = -1;
+            int pcm_buffer_size = get_pcm_buffer_size(dsdata->env, dsdata->streamer);
+            if(pcm_buffer_size == -1) {
+                error = 1;
+            } else {
+                dsdata->playing_state += pcm_bytes_written;
+                if(dsdata->playing_state >= (pcm_buffer_size * 85/100)) {
+                    /* The buffer is at least 85% filled.  Start playing. */
+                    error = start_playing(env, dsdata->streamer);
+                    if(!error) {
+                        dsdata->playing_state = -1;
+                    }
                 }
             }
         }
@@ -271,8 +290,6 @@ static enum mad_flow on_mad_output(void *data, struct mad_header const *header,
 
 static enum mad_flow on_mad_error(void *data, struct mad_stream *stream, struct mad_frame *frame)
 {
-    struct decoder_state *dsdata = data;
-
     LOGE("decoding error 0x%04x (%s)", stream->error, mad_stream_errorstr(stream));
 
     return MAD_FLOW_CONTINUE;
@@ -308,12 +325,11 @@ static int update_audio_format(JNIEnv *env, jobject streamer, int samplerate, in
 }
 
 /* Get a pointer to the short[] array backing the mPcmBuffer of this MP3Streamer object. */
-static int get_pcm_buffer(JNIEnv *env, jobject streamer, struct buffer_and_object *result)
+static jobject get_pcm_buffer_only(JNIEnv *env, jobject streamer)
 {
     jclass cls = NULL;
     jfieldID fid = NULL;
     jshortArray array_obj = NULL;
-    jshort *pcm_buffer = NULL;
     int error = 0;
 
     /* Get the PCM buffer field. */
@@ -333,6 +349,26 @@ static int get_pcm_buffer(JNIEnv *env, jobject streamer, struct buffer_and_objec
         }
     }
 
+    if(error) {
+        return NULL;
+    } else {
+        return array_obj;
+    }
+}
+
+/* Get a pointer to the short[] array backing the mPcmBuffer of this MP3Streamer object. */
+static int get_pcm_buffer(JNIEnv *env, jobject streamer, struct buffer_and_object *result)
+{
+    jshortArray array_obj = NULL;
+    jshort *pcm_buffer = NULL;
+    int error = 0;
+
+    /* Get the PCM buffer array object. */
+    array_obj = get_pcm_buffer_only(env, streamer);
+    if(array_obj == NULL) {
+        error = 1;
+    }
+
     /* Get the PCM buffer pointer. */
     if(!error) {
         pcm_buffer = (*env)->GetShortArrayElements(env, array_obj, NULL);
@@ -349,6 +385,31 @@ static int get_pcm_buffer(JNIEnv *env, jobject streamer, struct buffer_and_objec
     }
 
     return error;
+}
+
+
+/* Return the size of the PCM buffer for this streamer, or -1 for error. */
+static int get_pcm_buffer_size(JNIEnv *env, jobject streamer)
+{
+    jobject buffer_obj = NULL;
+    int result = 0;
+    int error = 0;
+
+    /* Get the PCM buffer array object. */
+    buffer_obj = get_pcm_buffer_only(env, streamer);
+    if(buffer_obj == NULL) {
+        error = 1;
+    }
+
+    /* Query its size. */
+    if(!error) {
+        result = (*env)->GetArrayLength(env, buffer_obj);
+    }
+
+    if(error) {
+        result = -1;
+    }
+    return result;
 }
 
 
@@ -489,7 +550,8 @@ static int write_pcm_output(JNIEnv *env, jobject streamer, struct mad_pcm *pcm)
     return result;
 }
 
-
+/* Not using this at the moment... --kvance */
+#if 0
 /* Update the buffering state on the Java side. */
 static int update_buffering_state(JNIEnv *env, jobject streamer, jboolean is_buffering)
 {
@@ -510,6 +572,7 @@ static int update_buffering_state(JNIEnv *env, jobject streamer, jboolean is_buf
 
     return error;
 }
+#endif
 
 
 /* Update the AudioTrack format on the Java side. */
@@ -530,5 +593,26 @@ static int start_playing(JNIEnv *env, jobject streamer)
         error = (*env)->CallIntMethod(env, streamer, mid);
     }
 
+    return error;
+}
+
+
+static int acquire_mp3_buffer(JNIEnv *env, jobject obj)
+{
+    int error = 0;
+    if((*env)->MonitorEnter(env, obj) != JNI_OK) {
+        LOGE("Failed to acquire the MP3 buffer");
+        error = 1;
+    }
+    return error;
+}
+
+static int release_mp3_buffer(JNIEnv *env, jobject obj)
+{
+    int error = 0;
+    if((*env)->MonitorExit(env, obj) != JNI_OK) {
+        LOGE("Failed to release the MP3 buffer");
+        error = 1;
+    }
     return error;
 }

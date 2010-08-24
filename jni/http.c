@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <string.h>
@@ -25,6 +26,8 @@
 
 #include "abort.h"
 #include "logmacros.h"
+#include "read.h"
+#include "ringbuffer_jni.h"
 
 /*
  * Forward declarations
@@ -44,7 +47,7 @@ JNIEXPORT jint JNICALL Java_com_kvance_Nectroid_MP3Streamer_openSocket
 {
     int error = 0;
     int sock = -1;
-    const jbyte *host_cstr = NULL;
+    const char *host_cstr = NULL;
     struct hostent *resolved_host = NULL;
     struct sockaddr_in host_addr;
     int rc = -1;
@@ -112,12 +115,59 @@ JNIEXPORT void JNICALL Java_com_kvance_Nectroid_MP3Streamer_closeSocket
 }
 
 
+/* Block until there is data to read on this socket. */
+JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_waitForReadable
+    (JNIEnv *env, jobject obj, jint sock)
+{
+    fd_set rfds;
+    struct timeval timeout;
+    int rc = 0;
+    int error = 0;
+
+    // Set timeout to 10 seconds.
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+
+    FD_ZERO(&rfds);
+    FD_SET(sock, &rfds);
+    rc = select(sock + 1, &rfds, NULL, NULL, &timeout);
+    if(rc == -1) {
+        LOGE("Error waiting to read MP3: %s", strerror(errno));
+        error = 1;
+    } else if(rc == 0) {
+        LOGE("Timed out waiting to read MP3");
+        error = 1;
+    }
+
+    return error ? JNI_TRUE : JNI_FALSE;
+}
+
+
+/* Read any amount of data into this MP3 ringbuffer. */
+JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_readIntoMP3Buffer
+    (JNIEnv *env, jobject streamer, jint sock, jobject ringbuffer_obj)
+{
+    int error = 0;
+
+    struct ringbuffer *rbuf = get_local_ringbuffer(env, ringbuffer_obj);
+    if(!rbuf) {
+        error = 1;
+    }
+    
+    if(!error) {
+        error = read_into_ringbuffer(sock, rbuf);
+    }
+
+    return error ? JNI_TRUE : JNI_FALSE;
+}
+
+
 /* Send the HTTP request. */
 JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_sendHttpRequest
     (JNIEnv *env, jobject obj, jstring path, jint sock)
 {
     int error = 0;
-    const jbyte *path_cstr = NULL;
+    const char *path_cstr = NULL;
     char *req_buffer = NULL;
     const char *req_begin_part = "GET ";
     const char *req_end_part = " HTTP/1.0\r\n\r\n";
@@ -201,8 +251,8 @@ JNIEXPORT jboolean JNICALL Java_com_kvance_Nectroid_MP3Streamer_sendHttpRequest
         (*env)->ReleaseStringUTFChars(env, path, path_cstr);
     }
 
-    /* Return success boolean. */
-    return error ? JNI_FALSE : JNI_TRUE;
+    /* Return error boolean. */
+    return error ? JNI_TRUE : JNI_FALSE;
 }
 
 
