@@ -17,14 +17,16 @@ package com.kvance.Nectroid;
 
 import java.net.URL;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.util.Log;
 
 
-class MP3Streamer extends Thread
+class MP3Streamer
 {
     public interface BufferingListener {
         abstract void onMP3Buffering(boolean isBuffering);
@@ -36,22 +38,31 @@ class MP3Streamer extends Thread
     private String mRemoteHost;
     private int mRemotePort;
     private String mRemotePath;
-    private int mMP3BufferSize;
     private boolean mCancelled;
 
     private AudioTrack mAudioTrack;
     private short[] mPcmBuffer;
+    private RingBuffer mMP3Buffer;
+    private int mMP3BufferSize;
 
     private Handler mHandler;
 
     private BufferingListener mBufferingListener;
     private ErrorListener mErrorListener;
 
+    private Thread mBufferingThread;
+    private Thread mStreamingThread;
+
+    private Context mContext;
+    private PowerManager.WakeLock mWakeLock;
+
+    private int mSocket;
+
     private static final int PCM_BUFFER_SIZE = 44100 * 2 * 2 * 8/10; // bytes
     private static final String TAG = "MP3Streamer";
 
 
-    MP3Streamer(URL streamUrl, int bitrate)
+    MP3Streamer(Context context, URL streamUrl, int bitrate)
     {
         // Take apart the URL now.
         mRemoteHost = streamUrl.getHost();
@@ -61,14 +72,20 @@ class MP3Streamer extends Thread
         }
         mRemotePath = streamUrl.getPath();
 
-        mCancelled = false;
-        mAudioTrack = null;
+        // Allocate the MP3 buffer.
         mMP3BufferSize = bufferSizeForBitrate(bitrate);
         Log.d(TAG, String.format("Set %d byte buffer for %d kbps stream", mMP3BufferSize, bitrate));
-        mHandler = new Handler();
+        mMP3Buffer = new RingBuffer(mMP3BufferSize);
 
-        // PCM_BUFFER_SIZE is in bytes, so divide by 2 to get shorts.
+        // Allocate the PCM buffer; PCM_BUFFER_SIZE is in bytes, so divide by 2 to get shorts.
         mPcmBuffer = new short[PCM_BUFFER_SIZE / 2];
+
+        // Initialize other fields.
+        mCancelled = false;
+        mAudioTrack = null;
+        mHandler = new Handler();
+        mSocket = -1;
+        mContext = context;
     }
 
 
@@ -83,6 +100,12 @@ class MP3Streamer extends Thread
         mBufferingListener = null;
         mErrorListener = null;
         setAbortFlag(true);
+
+        // Shut down the socket now, in case the buffering thread is blocking on a read.
+        if(mSocket != -1) {
+            closeSocket(mSocket);
+            mSocket = -1;
+        }
     }
 
 
@@ -97,56 +120,151 @@ class MP3Streamer extends Thread
     }
 
 
-    ///
-    /// Thread interface
-    ///
-
-    @Override
+    /** Start streaming the MP3. */
     public void start()
     {
         // Clear the abort flag before starting.
         setAbortFlag(false);
-        super.start();
+
+        // Start a thread to fill the MP3 buffer.
+        mBufferingThread = new Thread(bufferingLogic, "BufferingThread");
+        mBufferingThread.start();
+
+        // Start a thread to decode the MP3.
+        mStreamingThread = new Thread(streamingLogic, "StreamingThread");
+        mStreamingThread.start();
     }
 
 
-    @Override
-    public void run()
-    {
-        // Connect to the stream.
-        int socket = openSocket(mRemoteHost, mRemotePort);
-        if(socket == -1) {
-            notifyError();
-            return;
-        }
+    ///
+    /// Buffering logic
+    ///
 
-        try {
-            // Send the HTTP request.
-            Log.i(TAG, "Sending HTTP request");
-            if(!sendHttpRequest(mRemotePath, socket)) {
-                if(!mCancelled) {
-                    notifyError();
-                }
-                return;
-            }
+    private Runnable bufferingLogic = new Runnable() {
+        public void run() {
+            final String TAG = "MP3-Buffer";
+            boolean error = false;
 
-            // Stream until cancelled or error.
-            if(!runStreamingLoop(socket, mMP3BufferSize, PCM_BUFFER_SIZE)) {
-                if(!mCancelled) {
-                    notifyError();
+            // Notify the start of buffering.
+            notifyBuffering(true);
+
+            // Connect to the stream.
+            // Synchronize this to mMP3Buffer to keep the streaming thread asleep.
+            synchronized(mMP3Buffer) {
+                // Open the socket.
+                mSocket = openSocket(mRemoteHost, mRemotePort);
+                if(mSocket == -1) {
+                    error = true;
                 }
             }
-        } finally {
-            // Clean up.
-            closeSocket(socket);
 
-            if(mAudioTrack != null) {
-                mAudioTrack.stop();
-                mAudioTrack.release();
-                mAudioTrack = null;
+            try {
+                // Still acquiring mMP3Buffer to keep the streaming thread asleep.
+                synchronized(mMP3Buffer) {
+                    // Send the HTTP request.
+                    if(!error && !mCancelled) {
+                        Log.i(TAG, "Sending HTTP request");
+                        error = sendHttpRequest(mRemotePath, mSocket);
+                    }
+                }
+
+                // Read into the buffer until there's an error or it's quitting time.
+                boolean bufferIsFull = false;
+                while(!error && !mCancelled) {
+                    if(bufferIsFull) {
+                        // The buffer is full; let the streaming thread run.
+                        Log.d(TAG, "Buffer is full; waiting");
+                        try {
+                            Thread.sleep(200, 0);
+                        } catch(InterruptedException e) {
+                            // Doesn't matter.
+                        }
+                        bufferIsFull = false;
+                    } else {
+                        error = waitForReadable(mSocket);
+                    }
+
+                    if(!error) {
+                        // Wait until there's room in the buffer.
+                        synchronized(mMP3Buffer) {
+                            if(mMP3Buffer.isFull()) {
+                                bufferIsFull = true;
+                            } else {
+                                error = readIntoMP3Buffer(mSocket, mMP3Buffer);
+                            }
+                        }
+                    }
+                }
+            } finally {
+                // Clean up.
+                if(mSocket != -1) {
+                    closeSocket(mSocket);
+                    mSocket = -1;
+                }
+                if(error && !mCancelled) {
+                    notifyError();
+                }
+                Log.i(TAG, "Buffering thread is terminating");
             }
         }
-    }
+    };
+
+
+    ///
+    /// Streaming logic
+    ///
+
+    private Runnable streamingLogic = new Runnable() {
+        public void run() {
+            final String TAG = "MP3-Stream";
+            boolean error = false;
+
+            // Wait for the MP3 buffer to fill up to 75%.
+            int targetLength = mMP3BufferSize * 75/100;
+            while(!mCancelled) {
+                try {
+                    Thread.sleep(200, 0);
+                } catch(InterruptedException e) {
+                    // Doesn't matter...
+                }
+                synchronized(mMP3Buffer) {
+                    if(mMP3Buffer.length() >= targetLength) {
+                        break;
+                    }
+                }
+            }
+
+            // Notify that buffering is complete.
+            if(!mCancelled) {
+                notifyBuffering(false);
+            }
+
+            // Acquire a wake lock so the CPU runs fast enough to decode MP3s with the screen off.
+            PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Nectroid MP3 Player");
+            mWakeLock.acquire();
+
+            // Run the native MP3 decoding loop.
+            Log.i(TAG, "Starting MP3 decoding");
+            try {
+                if(!mCancelled) {
+                    error = runStreamingLoop(mMP3Buffer);
+                }
+            } finally {
+                // Clean up.
+                if(error && !mCancelled) {
+                    notifyError();
+                }
+                if(mAudioTrack != null) {
+                    mAudioTrack.stop();
+                    mAudioTrack.release();
+                    mAudioTrack = null;
+                }
+                mWakeLock.release();
+                Log.i(TAG, "Streaming thread is terminating");
+            }
+        }
+    };
 
 
     ///
@@ -155,11 +273,12 @@ class MP3Streamer extends Thread
 
     private void notifyBuffering(final boolean isBuffering)
     {
-        if(mBufferingListener != null) {
+        final BufferingListener listener = mBufferingListener;
+        if(listener != null) {
             // Run the listener on its own thread.
             mHandler.post(new Runnable() {
                 public void run() {
-                    mBufferingListener.onMP3Buffering(isBuffering);
+                    listener.onMP3Buffering(isBuffering);
                 }
             });
         }
@@ -168,14 +287,18 @@ class MP3Streamer extends Thread
 
     private void notifyError()
     {
-        if(mErrorListener != null) {
+        final ErrorListener listener = mErrorListener;
+        if(listener != null) {
             // Run the listener on its own thread.
             mHandler.post(new Runnable() {
                 public void run() {
-                    mErrorListener.onMP3Error();
+                    listener.onMP3Error();
                 }
             });
         }
+
+        // Cancel any other running threads.
+        cancel();
     }
 
 
@@ -190,7 +313,7 @@ class MP3Streamer extends Thread
         }
 
         // Determined experimentally
-        return bitrate * 1024 * 3/4;
+        return bitrate * 1024 * 1/2;
     }
 
 
@@ -234,6 +357,7 @@ class MP3Streamer extends Thread
         return true;
     }
 
+
     /** Start our AudioTrack playing.  Return 0 on success, 1 on error. */
     private int startPlaying()
     {
@@ -257,11 +381,17 @@ class MP3Streamer extends Thread
     /** Close this socket fd. */
     private native void closeSocket(int socket);
 
+    /** Block until there is data to read on this socket. */
+    private native boolean waitForReadable(int socket);
+
     /** Send the HTTP request to GET this path. */
     private native boolean sendHttpRequest(String path, int socket);
 
+    /** Read any amount of data into this MP3 ringbuffer. */
+    private native boolean readIntoMP3Buffer(int socket, RingBuffer mp3Buffer);
+
     /** Run the streaming loop. */
-    private native boolean runStreamingLoop(int socket, int mp3BufSize, int pcmBufSize);
+    private native boolean runStreamingLoop(RingBuffer mp3Buffer);
 
     /** Set the global abort flag. */
     private native void setAbortFlag(boolean abort);

@@ -13,12 +13,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Nectroid.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "logmacros.h"
 #include "read.h"
+
+/*
+ * Forward declarations
+ */
+
+static int check_read_error(int num_bytes_read);
+
+
+/*
+ * Public interface
+ */
 
 /* Read in a loop until at_least bytes have been read or at_most have been read. 
  * Return the number of bytes read, or -1 for error. */
@@ -40,14 +51,9 @@ int read_loop(int fd, unsigned char *buffer, int at_least, int at_most, int *abo
 
         bytes_to_read = at_most - total_bytes_read;
         num_bytes_read = read(fd, buffer, bytes_to_read);
+        error = check_read_error(num_bytes_read);
 
-        if(num_bytes_read < 0) {
-            LOGE("Error while reading MP3: %s", strerror(errno));
-            error = 1;
-        } else if(num_bytes_read == 0) {
-            LOGE("EOF while reading MP3");
-            error = 1;
-        } else {
+        if(!error) {
             total_bytes_read += num_bytes_read;
             buffer += num_bytes_read;
         }
@@ -69,4 +75,50 @@ int read_fully(int fd, unsigned char *buffer, int length, int *abort_flag)
         return 1;
     else
         return 0;
+}
+
+
+/* Read whatever is available into this ringbuffer.
+ *
+ * Return 0 on success, 1 on error. */
+int read_into_ringbuffer(int fd, struct ringbuffer *rbuf)
+{
+    int error = 0;
+
+    /* Read into a contiguous buffer. */
+    int length = ringbuffer_available_contiguous_write(rbuf);
+    int num_bytes_read = read(fd, rbuf->write, length);
+    error = check_read_error(num_bytes_read);
+
+    /* Advance the write pointer. */
+    if(!error) {
+        rbuf->write += num_bytes_read;
+        if(rbuf->write == rbuf->end) {
+            rbuf->write = rbuf->buffer;
+        }
+    }
+
+    return error;
+}
+
+
+/*
+ * Utility methods
+ */
+
+/* Check the result of a read() call for errors.
+ * Returns 1 on error, 0 otherwise. */
+static int check_read_error(int num_bytes_read)
+{
+    int error = 0;
+
+    if(num_bytes_read < 0) {
+        LOGE("Error while reading MP3: %s", strerror(errno));
+        error = 1;
+    } else if(num_bytes_read == 0) {
+        LOGE("EOF while reading MP3");
+        error = 1;
+    }
+
+    return error;
 }
