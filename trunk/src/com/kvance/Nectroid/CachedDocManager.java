@@ -106,12 +106,15 @@ abstract class CachedDocManager<Result> extends BaseDocManager
             // If there's no cached copy, or we don't want it, fetch it.
             if(response == null) {
                 URL url = Cache.getUrlForDocId(docId, mContext);
-                FetchUrl.Result fetchResult = FetchUrl.get(url);
-                response = fetchResult.getResponse();
-                if(response != null && response.length() > 0) {
-                    // Cache this version.
-                    Cache.write(docId, response, mContext);
-                    onNewCopyRetrieved(fetchResult, mContext);
+                if(url != null) {
+                    // In issue #7, a user got a null URL here.  How?!
+                    FetchUrl.Result fetchResult = FetchUrl.get(url);
+                    response = fetchResult.getResponse();
+                    if(response != null && response.length() > 0) {
+                        // Cache this version.
+                        Cache.write(docId, response, mContext);
+                        onNewCopyRetrieved(fetchResult, mContext);
+                    }
                 }
             }
 
