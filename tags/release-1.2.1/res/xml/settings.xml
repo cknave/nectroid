@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference android:title="@string/select_a_stream"
+        android:key="stream_url"/>
+
+    <com.kvance.Nectroid.SitePreference android:title="@string/select_a_site"
+        android:key="site_id"/>
+
+    <ListPreference android:title="@string/oneliner_refresh_time"
+        android:key="oneliner_refresh_period"
+        android:defaultValue="60"
+        android:entries="@array/oneliner_refresh_period_names"
+        android:entryValues="@array/oneliner_refresh_period_values"/>
+
+    <CheckBoxPreference android:title="@string/use_scrobbler"
+        android:summary="@string/requires_lastfm"
+        android:key="use_scrobbler"
+        android:defaultValue="true"/>
+
+    <CheckBoxPreference android:title="@string/use_sw_decoder"
+        android:summary="@string/sw_decoder_summary"
+        android:key="use_sw_decoder"
+        android:defaultValue="false"/>
+</PreferenceScreen>

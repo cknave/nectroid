@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nectroid</string>
+
+    <!-- UI strings -->
+    <string name="requested_by">Requested by</string>
+    <string name="time_left">Time Left:</string>
+    <string name="settings">Settings</string>
+    <string name="refresh">Refresh</string>
+    <string name="about">About</string>
+    <string name="queue">Queue</string>
+    <string name="history">History</string>
+    <string name="playlist_failed">Playlist update failed</string>
+    <string name="oneliner_failed">OneLiner update failed</string>
+    <string name="select_stream">Select a stream</string>
+    <string name="invalid_stream">Invalid stream URL</string>
+    <string name="pick_stream">Pick a stream</string>
+    <string name="streams_failed">Streams update failed</string>
+    <string name="nectroid_streaming">Nectroid stream</string>
+    <string name="player_error">Error playing stream</string>
+    <string name="queue_empty">Queue is empty</string>
+    <string name="history_empty">History is empty</string>
+    <string name="no_streams">No streams available</string>
+    <string name="loading_streams">Loading streams...</string>
+    <string name="about_nectroid">About Nectroid</string>
+
+    <!-- Settings strings -->
+    <string name="select_a_stream">Select a stream</string>
+    <string name="select_a_site">Select a site</string>
+    <string name="use_scrobbler">Use Audioscrobbler</string>
+    <string name="requires_lastfm">Requires the Last.fm app</string>
+    <string name="use_sw_decoder">Software MP3 player</string>
+    <string name="sw_decoder_summary">Only enable if normal player is broken</string>
+    <string name="oneliner_refresh_time">OneLiner refresh time</string>
+    <string name="every_30_seconds">Every 30 seconds</string>
+    <string name="every_1_minute">Every 1 minute</string>
+    <string name="every_2_minutes">Every 2 minutes</string>
+    <string name="every_5_minutes">Every 5 minutes</string>
+    <string name="manual_refresh_only">Manual refresh only</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="new_site">New site</string>
+    <string name="edit_site">Edit site</string>
+    <string name="site_name">Site Name</string>
+    <string name="site">Site</string>
+    <string name="base_url">Base URL</string>
+    <string name="base_url_info">Base URL, ex: http://example.com/demovibes/</string>
+    <string name="url">URL</string>
+    <string name="color">Color</string>
+    <string name="color_info">Color in HTML format, ex: #88AACC</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_delete_last_site">You cannot delete the last site.</string>
+    <string name="confirm_delete">Delete %s?</string>
+
+    <!-- URL format strings -->
+    <string name="url_fmt_song">song/%s/</string>
+    <string name="url_fmt_artist">artist/%s/</string>
+    <string name="url_fmt_user">user/%s/</string>
+
+    <!-- Document URLs -->
+    <string name="url_queue">xml/queue/</string>
+    <string name="url_streams">xml/streams/</string>
+    <string name="url_oneliner">xml/oneliner/</string>
+
+    <!-- Document cache filenames -->
+    <string name="filename_queue">queue.xml</string>
+    <string name="filename_streams">streams.xml</string>
+    <string name="filename_oneliner">oneliner.xml</string>
+</resources>
