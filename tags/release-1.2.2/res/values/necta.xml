@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="necta" parent="@android:Theme.Light">
+        <item name="android:windowBackground">@drawable/backrepeat</item>
+        <item name="android:listViewStyle">@style/necta_listview</item>
+        <item name="android:textColorHighlight">@color/selected_color</item>
+    </style>
+
+    <style name="necta_listview" parent="@android:style/Widget.ListView">
+        <item name="android:background">@drawable/whitebox</item>
+        <item name="android:cacheColorHint">@color/light_bg</item>
+    </style>
+
+    <style name="text_button">
+        <item name="android:background">@drawable/text_button_bg</item>
+        <item name="android:textAppearance">@style/btn_text</item>
+    </style>
+
+    <style name="btn_text" parent="@android:style/TextAppearance">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="oneliner_author" parent="@android:style/TextAppearance">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="about_title" parent="@android:style/TextAppearance">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">30sp</item>
+    </style>
+</resources>
