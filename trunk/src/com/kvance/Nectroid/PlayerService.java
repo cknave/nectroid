@@ -24,7 +24,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -49,6 +52,7 @@ public class PlayerService extends ForegroundService
     private Notification mNotification;
     private CharSequence mNotifyTitle;
     private PendingIntent mNotifyIntent;
+    private WifiManager.WifiLock mWifiLock;
 
     private PlaylistManager mPlaylistManager;
     private PlayerManager mPlayerManager;
@@ -93,6 +97,14 @@ public class PlayerService extends ForegroundService
         // Register for song updates.
         mPlaylistManager.addSongListener(this);
         mPlaylistManager.requestAutoRefresh(this);
+
+        // Keep any running wi-fi active.
+        Context ctx = getApplicationContext();
+        if(isWifiConnected(ctx)) {
+            WifiManager wiman = (WifiManager)ctx.getSystemService(Context.WIFI_SERVICE);
+            mWifiLock = wiman.createWifiLock(WifiManager.WIFI_MODE_FULL, TAG);
+            mWifiLock.acquire();
+        }
     }
 
 
@@ -100,6 +112,13 @@ public class PlayerService extends ForegroundService
     public void onDestroy()
     {
         Log.d(TAG, "destroy PlayerService");
+        
+        // Release any existing wifi lock.
+        if(mWifiLock != null) {
+            mWifiLock.release();
+            mWifiLock = null;
+        }
+
         // Tell the player manager we're going away.
         mPlayerManager.setPlayer(null);
 
@@ -230,7 +249,6 @@ public class PlayerService extends ForegroundService
     private void startPlaying(Uri stream, int bitrate)
     {
         boolean error = false;
-//        if(android.os.Build.VERSION.SDK.equals("3")) {
         if(Prefs.getUseSWDecoder(this)) {
             Log.i(TAG, "Using software MP3 decoding instead of MediaPlayer.");
             URL streamUrl = null;
@@ -298,5 +316,15 @@ public class PlayerService extends ForegroundService
         Context ctx = getApplicationContext();
         mNotification.setLatestEventInfo(ctx, mNotifyTitle, info, mNotifyIntent);
         mNM.notify(PLAYING_ID, mNotification);
+    }
+
+
+    private static boolean isWifiConnected(Context context)
+    {
+        ConnectivityManager conman = (ConnectivityManager)context.getSystemService(
+                Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = conman.getActiveNetworkInfo();
+
+        return (netInfo != null) && (netInfo.getType() == ConnectivityManager.TYPE_WIFI);
     }
 }
