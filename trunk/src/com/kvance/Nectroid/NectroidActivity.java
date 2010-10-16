@@ -474,11 +474,6 @@ public class NectroidActivity extends Activity
         updateRequestedBy(ent.getEntry());
     }
 
-    private void updatePlaylistUI()
-    {
-        updatePlaylistUI(mPlaylistManager.getCurrentSong());
-    }
-
     /** Clear the playlist views. */
     private void clearPlaylistUI()
     {

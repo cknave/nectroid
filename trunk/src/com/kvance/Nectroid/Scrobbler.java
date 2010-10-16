@@ -53,7 +53,10 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
             // Listen for song changes while the player is playing.
             if(mPlayerManager.getPlayerState() == PlayerService.State.PLAYING) {
                 mPlaylistManager.addSongListener(this);
-                notifySong(mPlaylistManager.getCurrentSong());
+                Playlist.EntryAndTimeLeft currentSong = mPlaylistManager.getCurrentSong();
+                if(currentSong != null) {
+                    notifySong(currentSong);
+                }
             }
             // Listen for changes in the player state.
             mPlayerManager.addStateListener(this);
@@ -100,7 +103,10 @@ class Scrobbler implements PlayerManager.StateListener, PlaylistManager.SongList
     {
         if(newState == PlayerService.State.PLAYING) {
             mPlaylistManager.addSongListener(this);
-            notifySong(mPlaylistManager.getCurrentSong());
+            Playlist.EntryAndTimeLeft currentSong = mPlaylistManager.getCurrentSong();
+            if(currentSong != null) {
+                notifySong(currentSong);
+            }
         } else if(newState == PlayerService.State.STOPPED) {
             mPlaylistManager.removeSongListener(this);
             notifyStopped();
