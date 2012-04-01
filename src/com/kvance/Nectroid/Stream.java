@@ -45,7 +45,33 @@ class Stream
         MP3,
         OGG,
         AAC,
-        SHOUTCAST,
+        SHOUTCAST;
+
+        public String getName(Context context) {
+            int stringId;
+            switch(this) {
+                case MP3:
+                    stringId = R.string.stream_type_mp3;
+                    break;
+
+                case OGG:
+                    stringId = R.string.stream_type_ogg;
+                    break;
+
+                case AAC:
+                    stringId = R.string.stream_type_aac;
+                    break;
+
+                case SHOUTCAST:
+                    stringId = R.string.stream_type_shoutcast;
+                    break;
+
+                default:
+                    stringId = R.string.stream_type_unknown;
+                    break;
+            }
+            return context.getString(stringId);
+        }
     }
 
     private int mId;
@@ -71,7 +97,16 @@ class Stream
     public String getCountry() { return mCountry; }
     public int getBitrate() { return mBitrate; }
     public Type getType() { return mType; }
-    public String getTypeName() { return mTypeName; }
+    public String getSavedTypeName() { return mTypeName; }
+    
+    public String getTypeName(Context context) {
+        // Only return the saved typename if we don't understand its type code.
+        if(mType == Type.UNKNOWN && mTypeName != null) {
+            return mTypeName;
+        } else {
+            return mType.getName(context);
+        }
+    }
 
 
     private static final String TAG = "NectroidStream";
