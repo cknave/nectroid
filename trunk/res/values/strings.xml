@@ -67,4 +67,11 @@
     <string name="filename_queue">queue.xml</string>
     <string name="filename_streams">streams.xml</string>
     <string name="filename_oneliner">oneliner.xml</string>
+
+    <!-- Stream types -->
+    <string name="stream_type_unknown">UNKNOWN</string>
+    <string name="stream_type_mp3">MP3</string>
+    <string name="stream_type_ogg">Ogg</string>
+    <string name="stream_type_aac">AAC</string>
+    <string name="stream_type_shoutcast">SHOUTcast</string>
 </resources>

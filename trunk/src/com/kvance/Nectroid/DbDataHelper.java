@@ -192,7 +192,7 @@ class DbDataHelper
         mInsertStream.bindLong  (7, stream.getType().ordinal());
 
         // typeName is probably null.
-        String typeName = stream.getTypeName();
+        String typeName = stream.getSavedTypeName();
         if(typeName == null) {
             mInsertStream.bindNull(8);
         } else {

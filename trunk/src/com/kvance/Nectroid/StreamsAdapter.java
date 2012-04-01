@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
@@ -87,16 +89,21 @@ class StreamsAdapter extends BaseAdapter
     @Override
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        TextView view;
+        LinearLayout itemView;
         if(convertView == null) {
-            view = new TextView(mContext);
+            LayoutInflater inflater = (LayoutInflater)mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            itemView = (LinearLayout)inflater.inflate(R.layout.stream_item, parent, false);
         } else {
-            view = (TextView)convertView;
+            itemView = (LinearLayout)convertView;
         }
 
-        Stream stream = mStreams.get(position);
-        view.setText(stream.getName());
+        TextView nameView = (TextView)itemView.findViewById(R.id.stream_name);
+        TextView infoView = (TextView)itemView.findViewById(R.id.stream_info);
 
-        return view;
+        Stream stream = mStreams.get(position);
+        nameView.setText(stream.getName());
+        infoView.setText(String.format("%d kbps %s", stream.getBitrate(), stream.getTypeName(mContext)));
+
+        return itemView;
     }
 }
