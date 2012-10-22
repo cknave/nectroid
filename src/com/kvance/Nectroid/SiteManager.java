@@ -76,6 +76,19 @@ class SiteManager implements SharedPreferences.OnSharedPreferenceChangeListener
         mSiteListeners.remove(listener);
     }
 
+    /** Refresh the current site, notifying all listeners of the change. */
+    public void refreshCurrentSite()
+    {
+        // Clear the cache.
+        Cache.clear(mContext);
+
+        // Get the new site object.
+        int siteId = Prefs.getSiteId(mContext);
+        mCurrentSite = getSiteFromDb(siteId);
+
+        // Notify all interested parties.
+        notifyNewSite(mCurrentSite);
+    }
 
     ///
     /// Getters
@@ -92,15 +105,7 @@ class SiteManager implements SharedPreferences.OnSharedPreferenceChangeListener
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
     {
         if(key.equals(Prefs.SITE_ID_KEY)) {
-            // Clear the cache.
-            Cache.clear(mContext);
-
-            // Get the new site object.
-            int newSiteId = prefs.getInt(key, 0);
-            mCurrentSite = getSiteFromDb(newSiteId);
-
-            // Notify all interested parties.
-            notifyNewSite(mCurrentSite);
+        	refreshCurrentSite();
         }
     }
 
@@ -115,14 +120,6 @@ class SiteManager implements SharedPreferences.OnSharedPreferenceChangeListener
         for(SiteListener listener : mSiteListeners) {
             listener.onSiteChanged(newSite);
         }
-    }
-
-
-    /** Refresh our mCurrentSite object. */
-    private void refreshCurrentSite()
-    {
-        int siteId = Prefs.getSiteId(mContext);
-        mCurrentSite = getSiteFromDb(siteId);
     }
 
 
