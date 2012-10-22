@@ -24,7 +24,7 @@ import android.util.Log;
 
 class DbOpenHelper extends SQLiteOpenHelper
 {
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private static final String DB_NAME = "nectroid";
 
     // A site (e.g. nectarine, cvgm.net)
@@ -131,15 +131,30 @@ class DbOpenHelper extends SQLiteOpenHelper
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
         for(int version = oldVersion; version < newVersion; version++) {
-            if(version == 1) {
-                // Delete all streams from version 1.  When they were parsed from XML, the
-                // bitrate was ignored, and saved as 0.
-                Log.i(TAG, "Upgrading from version with bad streams; deleting them");
-                db.execSQL("DELETE FROM " + STREAMS_TABLE_NAME + ";");
-
-                // Clear the stream selection as well.
-                db.execSQL("DELETE FROM " + SELECTED_STREAM_TABLE_NAME + ";");
-                Prefs.clearStream(mContext);
+        	switch(version) {
+        		case 1: {
+	                // Delete all streams from version 1.  When they were parsed from XML, the
+	                // bitrate was ignored, and saved as 0.
+	                Log.i(TAG, "Upgrading from version with bad streams; deleting them");
+	                db.execSQL("DELETE FROM " + STREAMS_TABLE_NAME + ";");
+	
+	                // Clear the stream selection as well.
+	                db.execSQL("DELETE FROM " + SELECTED_STREAM_TABLE_NAME + ";");
+	                Prefs.clearStream(mContext);
+	                
+	                break;
+        		}
+        		case 2: {
+        			Log.i(TAG, "Upgrading from version with http Nectarine link; changing to https.");
+        			String[] urlReplace = {
+        					"https://www.scenemusic.net/demovibes/",
+        					"http://www.scenemusic.net/demovibes/"
+        			};
+        			db.execSQL("UPDATE " + SITES_TABLE_NAME + " SET " + SITES_URL_KEY + " = ? WHERE " + SITES_URL_KEY + " = ?;",
+        					urlReplace);
+        			break;
+        			
+        		}
             }
         }
     }
