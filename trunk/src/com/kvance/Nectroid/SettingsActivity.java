@@ -116,6 +116,12 @@ public class SettingsActivity extends PreferenceActivity
 
             case EDIT_SITE_REQUEST:
                 if(resultCode == Activity.RESULT_OK) {
+                	// If we edited the current site, force a reload by the site manager.
+                    int siteId = SiteActivity.parseSiteUri(data.getData());
+                    if(siteId == Prefs.getSiteId(this)) {
+                    	((NectroidApplication)getApplication()).getSiteManager().refreshCurrentSite();
+                    }
+                    
                     // Refresh the site preference to show the changes.
                     mSitePreference.refresh();
                 }
