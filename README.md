@@ -28,6 +28,7 @@ Nectroid requires the Android SDK and the NDK to build.
 
 
 Build instructions:
+
     $ android update project -n Nectroid -p .
 
     $ cd jni
