@@ -8,7 +8,8 @@ android {
         applicationId "com.kvance.Nectroid"
         minSdkVersion 3
         targetSdkVersion 4
-
+        versionCode 4
+        versionName "1.3"
         ndk {
             moduleName "libmad"
         }
