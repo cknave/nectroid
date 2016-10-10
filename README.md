@@ -1,7 +1,7 @@
 Nectroid
 ========
 Nectroid provides a way to access
-[Nectarine Demoscene Radio](https://www.scenemusic.net/demovibes/) or [CVGM Radio](http://www.cvgm.net/demovibes) or [Rock with Wolfenstein Radio](http://rockwithwolfenstein.com/demovibes) from Android
+[Nectarine Demoscene Radio](https://www.scenemusic.net/demovibes/) or [CVGM Radio](http://www.cvgm.net/demovibes) from Android
 devices.  Current feature set:
 
  * Background music streaming
