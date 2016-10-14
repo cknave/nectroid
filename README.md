@@ -1,11 +1,14 @@
 Nectroid
 ========
 Nectroid provides a way to access
-[Nectarine Demoscene Radio](https://www.scenemusic.net/demovibes/) from Android
+[Nectarine Demoscene Radio](https://www.scenemusic.net/demovibes/) or [CVGM Radio](http://www.cvgm.net/demovibes) from Android
 devices.  Current feature set:
 
  * Background music streaming
- * Current song, OneLiner, History and Queue views
+ * Login and logout (scenemusic, CVGM or Rock with Wolfenstein account needed)
+ * Current song, OneLiner, History, Queue and Favorites views
+ * Submit song from your favorites
+ * Submit message to oneliner
  * AudioScrobbler support
  * Support for other Demovibes-powered sites like
    [CVGM](http://www.cvgm.net/demovibes/)
@@ -13,6 +16,7 @@ devices.  Current feature set:
 
 Nectroid source code
 (C) 2010, 2012 Kevin Vance <kvance@kvance.com>
+(C) 2016 Decorde Matthieu <matthieu.decorde@gmail.com>
 
 Distribute under the terms of the GNU GPL v3.
 
